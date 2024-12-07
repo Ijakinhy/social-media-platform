@@ -4,7 +4,7 @@ const busboy = require("busboy");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
-const { config } = require("../utils/config");
+const { firebaseConfig } = require("../utils/config");
 
 exports.getAllScreams = async (req, res) => {
   try {
@@ -49,7 +49,6 @@ exports.postOneScream = async (req, res) => {
   //  file
   bb.on("file", (name, file, info) => {
     const { filename, encoding, mimeType } = info;
-    console.log(mimeType);
 
     if (mimeType !== "image/png" && mimeType !== "image/jpeg") {
       return res.status(400).json({ message: "Wrong file type submitted" });
@@ -75,7 +74,7 @@ exports.postOneScream = async (req, res) => {
               },
             },
           });
-        imageUrl = `http://127.0.0.1:9199/v0/b/${config.storageBucket}/o/${imageFilename}?alt=media`;
+        imageUrl = `http://127.0.0.1:9199/v0/b/${firebaseConfig.storageBucket}/o/${imageFilename}?alt=media`;
         const docRef = await db
           .collection("screams")
           .add({ ...newScream, screamImage: imageUrl });

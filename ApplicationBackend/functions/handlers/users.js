@@ -1,7 +1,6 @@
 const axios = require("axios");
 const { db } = require("../utils/admin");
-
-const { config } = require("../utils/config");
+const { firebaseConfig } = require("../utils/config");
 
 exports.signUpUser = async (req, res) => {
   try {
@@ -12,23 +11,28 @@ exports.signUpUser = async (req, res) => {
         "http://127.0.0.1:9199/v0/b/social-platform-ijakinhy.firebasestorage.app/o/default.jpg?alt=media",
       password: req.body.password,
     };
-    // let errors = {};
-    // if (!newUser.handle) {
-    //   errors.handle = "Must not be empty";
-    // } else if (!newUser.password) {
-    //   errors.password = "Must not be empty";
-    // } else if (!newUser.email) {
-    //   errors.email = "Must not be empty";
-    // } else if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(newUser.email)) {
-    //   errors.email = "Must be a valid email address";
-    // } else if (newUser.password.length < 6) {
-    //   errors.password = "Must be at least 6 characters long";
-    // }
-    // if (Object.keys(errors).length > 0) {
-    //   return res.status(400).json(errors);
-    // }
+    let errors = {};
+    if (!newUser.handle) {
+      errors.handle = "Must not be empty";
+    }
 
-    const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${config.apiKey}`;
+    if (!newUser.password) {
+      errors.password = "Must not be empty";
+    } else if (newUser.password.length < 6) {
+      errors.password = "Must be at least 6 characters long";
+    }
+
+    if (!newUser.email) {
+      errors.email = "Must not be empty";
+    } else if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(newUser.email)) {
+      errors.email = "Must be a valid email address";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json(errors);
+    }
+
+    const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`;
     const userDoc = await db.doc(`/users/${newUser.handle}`).get();
     if (userDoc.exists) {
       return res.status(400).json({ error: "User already exists." });
@@ -50,6 +54,7 @@ exports.signUpUser = async (req, res) => {
         newUser,
         token: response.data.idToken,
         userId: response.data.localId,
+        refreshToken: response.data.refreshToken,
       });
     }
   } catch (error) {
@@ -68,7 +73,7 @@ exports.signUpUser = async (req, res) => {
 
 exports.signInUser = async (req, res) => {
   try {
-    const loginUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${config.apiKey}`;
+    const loginUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseConfig.apiKey}`;
     const response = await axios.post(loginUrl, {
       email: req.body.email,
       password: req.body.password,
@@ -78,6 +83,7 @@ exports.signInUser = async (req, res) => {
     return res.status(201).json({
       token: response.data.idToken,
       userId: response.data.localId,
+      refreshToken: response.data.refreshToken,
     });
   } catch (error) {
     console.error(error.message);
