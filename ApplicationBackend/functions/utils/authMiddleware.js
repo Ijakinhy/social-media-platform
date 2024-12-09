@@ -11,26 +11,25 @@ module.exports = async (req, res, next) => {
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    if (decodedToken.exp < new Date.now()) {
-      console.log("token expired");
-    }
-    if (!decodedToken) {
-      throw new Error("No token provided.");
-    }
-    console.log(req.user);
 
     req.user = decodedToken;
+
     const userRef = await db
       .collection("users")
       .where("userId", "==", decodedToken.uid)
       .limit(1)
       .get();
-    req.user.handle = userRef.docs[0].data().handle;
 
+    if (userRef.empty) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    req.user.handle = userRef.docs[0].data().handle;
     req.user.profileImage = userRef.docs[0].data().profileImage;
 
     return next();
   } catch (error) {
-    return res.status(403).json({ error: error.code });
+    console.error("Authentication error:", error);
+    return res.status(403).json({ error: error.code || "Forbidden" });
   }
 };

@@ -36,8 +36,7 @@ exports.signUpUser = async (req, res) => {
     const userDoc = await db.doc(`/users/${newUser.handle}`).get();
     if (userDoc.exists) {
       return res.status(400).json({ error: "User already exists." });
-    }
-    {
+    } else {
       const response = await axios.post(signUpUrl, {
         email: newUser.email,
         password: newUser.password,
@@ -88,5 +87,34 @@ exports.signInUser = async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(400).json({ error: error.message });
+  }
+};
+
+exports.getUserData = async (req, res) => {
+  const handle = req.params.handle;
+  try {
+    let userData = {};
+    const userSnap = await db.doc(`/users/${handle}`).get();
+    if (userSnap.exists) {
+      userData.user = userSnap.data();
+    }
+    console.log({ handle });
+
+    const screamsSnap = await db
+      .collection("screams")
+      .where("userHandle", "==", handle)
+      .orderBy("createdAt", "desc")
+      .get();
+    userData.screams = [];
+    screamsSnap.forEach((doc) => {
+      userData.screams.push({
+        screamId: doc.id,
+        ...doc.data(),
+      });
+    });
+    return res.status(201).json({ userData });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ general: "error happen while fetching data" });
   }
 };
