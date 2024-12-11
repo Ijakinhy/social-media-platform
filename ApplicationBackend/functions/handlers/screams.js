@@ -123,7 +123,7 @@ exports.postOneScream = async (req, res) => {
 // comment on scream
 exports.addCommentScream = async (req, res) => {
   if (!req.body.commentText || req.body.commentText.trim() === "") {
-    return res.status(400).json({ error: "Comment text must not be empty." });
+    return res.status(400).json({ error: "must not be empty." });
   }
   const newComment = {
     userHandle: req.user.handle,
@@ -145,19 +145,6 @@ exports.addCommentScream = async (req, res) => {
       transaction.set(db.collection("comments").doc(), newComment);
       updatedScreamComments = screamSnap.data().commentCount + 1;
       transaction.update(screamDoc, { commentCount: updatedScreamComments });
-
-      /// create notification
-      if (screamSnap.data().userHandle !== req.user.handle) {
-        transaction.set(notificationsRef, {
-          recipient: screamSnap.data().userHandle,
-          sender: req.user.handle,
-          type: "comment",
-          read: false,
-          createdAt: new Date().toISOString(),
-          screamId: newComment.screamId,
-          notificationId: notificationsRef.id,
-        });
-      }
     });
     return res
       .status(201)
@@ -195,23 +182,12 @@ exports.likeScream = async (req, res) => {
 
       const updatedLikeCount = screamSnap.data().likeCount + 1;
       transaction.update(screamDoc, { likeCount: updatedLikeCount });
-      ////  create notification after liking the scream
-      if (screamSnap.data().userHandle !== req.user.handle) {
-        transaction.set(notificationsRef, {
-          recipient: screamSnap.data().userHandle,
-          sender: req.user.handle,
-          type: "like",
-          read: false,
-          createdAt: new Date().toISOString(),
-          screamId: req.params.screamId,
-          notificationId: notificationsRef.id,
-        });
-      }
     });
 
     return res.status(201).json({
       ...screamSnap.data(),
       likeCount: screamSnap.data().likeCount + 1,
+      screamId: screamSnap.id,
     });
   } catch (error) {
     console.error(error);
@@ -247,12 +223,6 @@ exports.unlikeScream = async (req, res) => {
 
       const updatedLikeCount = screamSnap.data().likeCount - 1;
       transaction.update(screamDoc, { likeCount: updatedLikeCount });
-      // delete notification
-      notificationsSnap.forEach((notification) => {
-        transaction.delete(notification.ref);
-      });
-
-      return Promise.resolve();
     });
 
     return res.status(201).json({

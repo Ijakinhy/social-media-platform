@@ -1,6 +1,7 @@
 const { FieldValue } = require("firebase-admin/firestore");
 const { db, admin } = require("../utils/admin");
-
+const functions = require("firebase-functions");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 exports.createChat = async (req, res) => {
   try {
     await db.doc(`/chats/${req.user.handle}`).set({ messages: [] });
@@ -12,81 +13,60 @@ exports.createChat = async (req, res) => {
 };
 
 exports.sendMessage = async (req, res) => {
+  const newMessage = {
+    text: req.body.text,
+    isSeen: false,
+    recipient: req.params.recipient,
+    updatedAt: new Date().toISOString(),
+    sender: req.user.handle,
+  };
+  const chatsRefId = await db
+    .collection("chats")
+    .doc(req.params.recipient)
+    .collection("messages")
+    .get();
+
   try {
-    const newMessage = {
-      text: req.body.text,
-      isSeen: false,
-      sender: req.user.handle,
-      updatedAt: new Date().toISOString(),
-      recipient: req.params.recipient,
-    };
-    const chatRef = db.doc(`/chats/${req.params.recipient}`);
-    const chatSnap = await db.doc(`/chats/${req.params.recipient}`).get();
-    const notificationsRef = db.collection("notifications").doc();
-    await db.runTransaction(async (transaction) => {
-      if (!chatSnap.exists) {
-        transaction.set(chatRef, {
-          messages: FieldValue.arrayUnion({
-            text: req.body.text,
-            isSeen: false,
-            sender: req.user.handle,
-            updatedAt: new Date().toISOString(),
-            recipient: req.params.recipient,
-            // messageId: chatRef.id,
-          }),
-          lastMessage: newMessage.text,
-        });
-      } else {
-        transaction.update(chatRef, {
-          messages: FieldValue.arrayUnion({
-            text: req.body.text,
-            isSeen: false,
-            sender: req.user.handle,
-            updatedAt: new Date().toISOString(),
-            recipient: req.params.recipient,
-            // messageId: chatRef.id,
-          }),
-          lastMessage: newMessage.text,
-        });
-      }
+    if (!newMessage.text) {
+      return res.status(400).json({ error: "empty message" });
+    }
+    if (!newMessage.recipient) {
+      return res.status(400).json({ error: "recipient is required" });
+    }
+    console.log(chatsRefId.size);
 
-      // Send notification to recipient
-      transaction.set(notificationsRef, {
-        recipient: req.params.recipient,
-        sender: req.user.handle,
-        type: "message",
-        read: false,
-        createdAt: new Date().toISOString(),
-        notificationId: notificationsRef.id,
-      });
+    const messageRef = await db
+      .collection("chats")
+      .doc(req.user.handle)
+      .collection("messages")
+      .add(newMessage);
+
+    return res.status(201).json({
+      ...newMessage,
+      messageId: messageRef.id,
     });
-
-    return res.json({ ...newMessage, lastMessage: newMessage.text });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
 exports.markMessageSeen = async (req, res) => {
   try {
-    const chatSnap = await db.doc(`/chats/${req.user.handle}`).get();
-    if (chatSnap.exists) {
-      const messages = chatSnap.data().messages;
-      const updatedMessages = messages.map((message) => {
-        if (message.recipient === req.user.handle) {
-          console.log(message.recipient);
+    const chatSnap = await db
+      .collection("chats")
+      .doc(req.user.handle)
+      .collection("messages")
+      .where("recipient", "==", req.user.handle)
+      .get();
+    const batch = db.batch();
 
-          return { ...message, isSeen: true };
-        }
-        return message;
+    chatSnap.forEach((doc) => {
+      batch.update(doc.ref, {
+        isSeen: true,
       });
-      await db
-        .doc(`/chats/${req.user.handle}`)
-        .update({ messages: updatedMessages });
-
-      return res.json({ message: "seen" });
-    }
+    });
+    batch.commit();
   } catch (error) {
     console.error(error);
     res
@@ -102,15 +82,16 @@ exports.markMessageNotificationRead = async (req, res) => {
       .where("type", "==", "message")
       .where("recipient", "==", req.user.handle)
       .get();
-
+    const batch = db.batch();
     if (notificationsSnap.empty) {
       return res.json({ message: "no unread notifications" });
     } else {
       notificationsSnap.forEach((doc) => {
-        db.doc(`/notifications/${doc.id}`).update({
+        batch.update(doc.ref, {
           read: true,
         });
       });
+      await batch.commit();
       return res.json({ message: "seen" });
     }
   } catch (error) {

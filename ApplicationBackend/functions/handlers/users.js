@@ -173,9 +173,11 @@ exports.getAuthenticatedUser = async (req, res) => {
       .collection("notifications")
       .where("recipient", "==", req.user.handle)
       .get();
+
     if (userSnap.exists) {
       authUserDetails.credentials = userSnap.data();
     }
+
     authUserDetails.notifications = [];
     if (!notificationsSnap.empty) {
       notificationsSnap.forEach((doc) => {
@@ -325,13 +327,33 @@ exports.blockUser = async (req, res) => {
   }
 };
 
-exports.getAllUserChats = async (req, res) => {
+exports.getUserMessages = async (req, res) => {
   try {
-    let chats = {};
-    const chatsSnap = await db.doc(`/chats/${req.params.handle}`).get();
-    if (chatsSnap.exists) {
-      chats = chatsSnap.data();
-    }
+    let chats = [];
+
+    const recipientMessagesSnap = await db
+      .collection("chats")
+      .doc(req.params.sender)
+      .collection("messages")
+      .where("recipient", "==", req.user.handle)
+      .orderBy("updatedAt", "asc")
+      .get();
+    const senderMessagesSnap = await db
+      .collection("chats")
+      .doc(req.user.handle)
+      .collection("messages")
+      .where("recipient", "==", req.params.sender)
+      .orderBy("updatedAt", "asc")
+      .get();
+    console.log(req.params.sender);
+    console.log(req.user.handle);
+
+    recipientMessagesSnap.forEach((doc) => {
+      chats.push(doc.data());
+    });
+    senderMessagesSnap.forEach((doc) => {
+      chats.push(doc.data());
+    });
     return res.json(chats);
   } catch (error) {
     console.error(error);
