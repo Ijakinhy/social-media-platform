@@ -122,6 +122,9 @@ exports.postOneScream = async (req, res) => {
 
 // comment on scream
 exports.addCommentScream = async (req, res) => {
+  if (!req.body.commentText || req.body.commentText.trim() === "") {
+    return res.status(400).json({ error: "Comment text must not be empty." });
+  }
   const newComment = {
     userHandle: req.user.handle,
     commentText: req.body.commentText,
@@ -135,17 +138,33 @@ exports.addCommentScream = async (req, res) => {
     if (!screamSnap.exists) {
       return res.status(404).json({ error: "Scream not found." });
     }
-
-    await db.runTransaction((transaction) => {
+    let updatedScreamComments;
+    const notificationsRef = db.collection("notifications").doc();
+    await db.runTransaction(async (transaction) => {
+      /// add comment and update scream commentCount
       transaction.set(db.collection("comments").doc(), newComment);
-      const updatedScreamComments = screamSnap.data().commentCount + 1;
+      updatedScreamComments = screamSnap.data().commentCount + 1;
       transaction.update(screamDoc, { commentCount: updatedScreamComments });
-      return Promise.resolve();
+
+      /// create notification
+      if (screamSnap.data().userHandle !== req.user.handle) {
+        transaction.set(notificationsRef, {
+          recipient: screamSnap.data().userHandle,
+          sender: req.user.handle,
+          type: "comment",
+          read: false,
+          createdAt: new Date().toISOString(),
+          screamId: newComment.screamId,
+          notificationId: notificationsRef.id,
+        });
+      }
     });
-    return res.status(201).json(newComment);
+    return res
+      .status(201)
+      .json({ ...newComment, commentCount: updatedScreamComments });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error while commenting on a scream.");
+    res.status(500).json("Error while commenting on a scream.");
   }
 };
 
@@ -162,12 +181,11 @@ exports.likeScream = async (req, res) => {
       return res.status(404).json({ error: "Scream not found." });
     }
     if (likeSnap.docs.length > 0) {
-      return res
-        .status(400)
-        .json({ error: "Scream already liked by this user." });
+      return res.status(400).json({ error: "Scream already liked" });
     }
-
+    const notificationsRef = db.collection("notifications").doc();
     await db.runTransaction(async (transaction) => {
+      ///  like scream and update scream like count
       transaction.set(db.collection("likes").doc(), {
         screamId: req.params.screamId,
         userHandle: req.user.handle,
@@ -177,7 +195,18 @@ exports.likeScream = async (req, res) => {
 
       const updatedLikeCount = screamSnap.data().likeCount + 1;
       transaction.update(screamDoc, { likeCount: updatedLikeCount });
-      return Promise.resolve();
+      ////  create notification after liking the scream
+      if (screamSnap.data().userHandle !== req.user.handle) {
+        transaction.set(notificationsRef, {
+          recipient: screamSnap.data().userHandle,
+          sender: req.user.handle,
+          type: "like",
+          read: false,
+          createdAt: new Date().toISOString(),
+          screamId: req.params.screamId,
+          notificationId: notificationsRef.id,
+        });
+      }
     });
 
     return res.status(201).json({
@@ -186,7 +215,7 @@ exports.likeScream = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error while liking a scream.");
+    res.status(500).json({ error: "Error while liking a scream." });
   }
 };
 
@@ -199,18 +228,30 @@ exports.unlikeScream = async (req, res) => {
       .where("screamId", "==", req.params.screamId)
       .where("userHandle", "==", req.user.handle)
       .get();
+    const notificationsSnap = await db
+      .collection("notifications")
+      .where("sender", "==", req.user.handle)
+      .where("screamId", "==", req.params.screamId)
+      .where("type", "==", "like")
+      .get();
     if (!screamSnap.exists) {
       return res.status(404).json({ error: "Scream not found." });
     }
     if (likeSnap.docs.length === 0 || screamSnap.data().likeCount === 0) {
-      return res.status(400).json({ error: "Scream already not liked" });
+      return res.status(400).json({ error: "Scream  not liked" });
     }
 
     await db.runTransaction(async (transaction) => {
+      /// delete like and update scream like count
       transaction.delete(likeSnap.docs[0].ref);
 
       const updatedLikeCount = screamSnap.data().likeCount - 1;
       transaction.update(screamDoc, { likeCount: updatedLikeCount });
+      // delete notification
+      notificationsSnap.forEach((notification) => {
+        transaction.delete(notification.ref);
+      });
+
       return Promise.resolve();
     });
 
@@ -222,7 +263,7 @@ exports.unlikeScream = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error while liking a scream.");
+    res.status(500).json({ error: "Error while unlike the scream." });
   }
 };
 
@@ -231,6 +272,10 @@ exports.deleteScream = async (req, res) => {
     const screamDoc = db.doc(`/screams/${req.params.screamId}`);
     const screamSnap = await screamDoc.get();
     const butch = db.batch();
+    if (!screamSnap.exists) {
+      return res.status(404).json({ error: "Scream not found." });
+    }
+
     if (req.user.handle === screamSnap.data().userHandle) {
       butch.delete(screamDoc);
       // delete relate likes
@@ -249,11 +294,20 @@ exports.deleteScream = async (req, res) => {
       commentsSnap.forEach((commentDoc) => {
         butch.delete(commentDoc.ref);
       });
+      ///  delete the notification
+      const notificationsSnap = await db
+        .collection("notifications")
+        .where("screamId", "==", req.params.screamId)
+        .get();
+      notificationsSnap.forEach((notification) => {
+        butch.delete(notification.ref);
+      });
+
       await butch.commit();
       return res.status(200).json({ message: "Scream deleted successfully." });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error while deleting scream.");
+    res.status(500).json({ error: "Error while deleting scream." });
   }
 };
