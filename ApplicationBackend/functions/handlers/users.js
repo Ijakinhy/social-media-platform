@@ -56,10 +56,10 @@ exports.signUpUser = async (req, res) => {
         profileImage: newUser.profileImage,
       });
       return res.status(201).json({
-        newUser,
+        email: newUser.email,
+        password: newUser.password,
         token: response.data.idToken,
         userId: response.data.localId,
-        refreshToken: response.data.refreshToken,
       });
     }
   } catch (error) {
