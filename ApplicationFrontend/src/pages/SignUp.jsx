@@ -21,15 +21,14 @@ const SignUp = () => {
   const handleSignup = (e) => {
     console.log(formData);
     e.preventDefault();
-    dispatch(signupUser(formData));
+    dispatch(signupUser({ formData, navigate }));
     setFormData({ handle: "", email: "", password: "" });
-    navigate("/");
   };
 
   return (
-    <div className="">
+    <div className="bg-slate-100 min-h-screen pb-9 pt-8">
       <img
-        className="max-w-32 rounded-full ml-auto  mr-auto mt-8"
+        className="max-w-32 rounded-full ml-auto  mr-auto "
         src={logo}
         alt="logo"
       />

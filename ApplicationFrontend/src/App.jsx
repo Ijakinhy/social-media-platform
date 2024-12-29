@@ -1,28 +1,31 @@
 import { useEffect, useState } from "react";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import { Route, Router, Routes } from "react-router-dom";
-import PrivateRouter from "./utils/PrivateRouter";
+import { Route, Router, Routes, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getAuthenticatedUser } from "./redux/userSlice";
+import setDefaultToken from "./utils/setDefaultToken";
+import PrivateRouter from "./utils/PrivateRouter";
+import { jwtDecode } from "jwt-decode";
 
 export default function App() {
-  const dispatch = useDispatch();
-  const token = localStorage.token;
+  const navigate = useNavigate();
   useEffect(() => {
-    if (token) {
-      dispatch(getAuthenticatedUser());
+    if (localStorage.token) {
+      navigate("/");
     }
-  }, []);
-  // console.log(!!localStorage.token);
-
+  }, [localStorage.token]);
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/SignUp" element={<SignUp />} />
-        <Route element={<PrivateRouter authenticated={!!localStorage.token} />}>
+        <Route
+          element={
+            <PrivateRouter authenticated={!!localStorage.getItem("token")} />
+          }
+        >
           <Route path="/" element={<Home />} />
         </Route>
       </Routes>

@@ -91,7 +91,7 @@ exports.signInUser = async (req, res) => {
       refreshToken: response.data.refreshToken,
     });
   } catch (error) {
-    console.error(error.message);
+    console.error(error);
     res.status(400).json({ error: error.message });
   }
 };

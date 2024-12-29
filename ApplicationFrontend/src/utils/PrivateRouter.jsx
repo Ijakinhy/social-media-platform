@@ -1,19 +1,26 @@
+import React, { useMemo } from "react";
 import { jwtDecode } from "jwt-decode";
-import React from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import axios from "axios";
 
-const PrivateRouter = ({ authenticated }) => {
-  const token = localStorage.token;
-  const navigate = useNavigate();
-  if (token) {
-    const decodedToken = jwtDecode(token);
+const PrivateRouter = React.memo(({ authenticated }) => {
+  const token = useMemo(() => localStorage.getItem("token"), []);
 
-    if (decodedToken.exp * 1000 < Date.now()) {
-      localStorage.removeItem("token");
-      navigate("/login");
+  const isTokenValid = useMemo(() => {
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      return decodedToken.exp * 1000 > Date.now();
     }
+    return false;
+  }, [token]);
+
+  if (!isTokenValid) {
+    localStorage.removeItem("token");
+    delete axios.defaults.headers.common["Authorization"];
+    return <Navigate to="/login" replace />;
   }
-  return !authenticated ? <Navigate to="/login" /> : <Outlet />;
-};
+
+  return token ? <Outlet /> : <Navigate to="/login" replace />;
+});
 
 export default PrivateRouter;

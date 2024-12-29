@@ -1,6 +1,7 @@
 import React from "react";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import setDefaultToken from "../utils/setDefaultToken";
 
 const initialState = {
   userData: {},
@@ -17,12 +18,13 @@ const initialState = {
 
 export const signupUser = createAsyncThunk(
   "/user/signUp",
-  async (formData, { rejectWithValue, dispatch }) => {
+  async ({ formData, navigate }, { rejectWithValue, dispatch }) => {
     try {
       const res = await axios.post("/api/signUp", formData);
       const token = res.data.token;
+      setDefaultToken({ token });
       localStorage.setItem("token", token);
-
+      navigate("/");
       return res.data;
     } catch (error) {
       console.log(error);
@@ -35,16 +37,17 @@ export const signupUser = createAsyncThunk(
 
 export const signInUser = createAsyncThunk(
   "user/signIn",
-  async (formData, { rejectWithValue, dispatch }) => {
+  async ({ formData, navigate }, { rejectWithValue, dispatch }) => {
     try {
       const res = await axios.post("/api/signIn", formData);
       const token = res.data.token;
+      setDefaultToken({ token });
       localStorage.setItem("token", token);
-
+      navigate("/");
       return res.data;
     } catch (error) {
       console.log(error);
-      return rejectWithValue(error?.response?.data);
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -88,13 +91,25 @@ const userSlice = createSlice({
         state.loading.signup = false;
         state.errors = action.payload.error;
       })
+      .addCase(signInUser.pending, (state) => {
+        state.loading.signin = true;
+        state.errors = {};
+      })
+      .addCase(signInUser.fulfilled, (state, action) => {
+        state.loading.signin = false;
+        state.userData = action.payload;
+      })
+      .addCase(signInUser.rejected, (state, action) => {
+        state.loading.signin = false;
+        state.errors = action.payload.error;
+      })
       .addCase(getAuthenticatedUser.fulfilled, (state, action) => {
         state.loading.signin = false;
         state.userData = action.payload.user;
         state.screams = action.payload.screams;
       })
       .addCase(getAuthenticatedUser.rejected, (state, action) => {
-        state.loading.signin = false;
+        state.loading.app = false;
         state.errors = action.payload.error;
       });
   },

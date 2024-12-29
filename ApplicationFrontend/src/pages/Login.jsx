@@ -1,22 +1,27 @@
 import React, { useState } from "react";
 import logo from "../images/logo.jpg";
 import { PiInfoFill } from "react-icons/pi";
-import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { signInUser } from "../redux/userSlice";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const {
+    loading: { signin },
+  } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSignIn = (e) => {
     e.preventDefault();
-    dispatch(signInUser(formData));
+    dispatch(signInUser({ formData, navigate }));
+    console.log(formData);
   };
 
   return (
-    <div className="">
+    <div className="bg-slate-100 min-h-screen pb-9 pt-8">
       <img
-        className="max-w-28 rounded-full ml-auto  mr-auto mt-8"
+        className="max-w-28 rounded-full ml-auto  mr-auto "
         src={logo}
         alt="logo"
       />
@@ -46,6 +51,7 @@ const Login = () => {
             </p>
           </div>
           <input
+            autoComplete="value"
             type="email"
             placeholder="Email"
             value={formData.email}
@@ -55,6 +61,7 @@ const Login = () => {
             className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none  w-full max-w-xs"
           />
           <input
+            autoComplete="value"
             type="password"
             placeholder="Password"
             value={formData.password}
@@ -67,7 +74,11 @@ const Login = () => {
             type="submit"
             className="p-1 rounded-md hover:bg-sky-900  bg-sky-800 w-full  text-white mt-8   text-lg font-medium"
           >
-            Sign in
+            {signin ? (
+              <span className="loading loading-spinner loading-md" />
+            ) : (
+              "Sign in"
+            )}
           </button>
         </form>
         <div className="flex justify-center mt-4">

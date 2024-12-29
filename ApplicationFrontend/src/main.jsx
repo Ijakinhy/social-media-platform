@@ -7,7 +7,7 @@ import { store } from "./store.js";
 import { BrowserRouter } from "react-router-dom";
 import setDefaultToken from "./utils/setDefaultToken.js";
 
-setDefaultToken();
+setDefaultToken({ token: localStorage.getItem("token") });
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
