@@ -7,19 +7,35 @@ import Navbar from "../components/Navbar";
 const Home = () => {
   const dispatch = useDispatch();
   const {
-    userData: { token },
+    loading: { app },
   } = useSelector((state) => state.user);
+
   const navigate = useNavigate();
+  console.log("component mounted");
+
   useEffect(() => {
-    if (localStorage.token) {
-      dispatch(getAuthenticatedUser());
-      navigate("/");
-    }
-  }, [localStorage.token]);
+    dispatch(getAuthenticatedUser());
+    console.log(localStorage.token);
+  }, []);
+
   return (
-    <div className="bg-neutral-900 h-svh">
-      <Navbar />
-    </div>
+    <>
+      {app ? (
+        <div className="relative">
+          <div className="text-center  translate-y-3/4 ">
+            <div className="w-16 h-16 border-8  border-dashed rounded-full animate-spin border-yellow-500  mx-auto"></div>
+            <h2 className="text-zinc-900 dark:text-white mt-4">Loading...</h2>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Your adventure is about to begin
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="h-svh">
+          <Navbar />
+        </div>
+      )}
+    </>
   );
 };
 

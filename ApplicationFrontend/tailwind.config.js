@@ -6,6 +6,10 @@ export default {
       colors: {
         bgSupport: "var(--bg-support)",
         borderSupport: "var(--border-support)",
+        bgOpacity: "rgba(238, 241, 243, 0.2)",
+        bgDropDown: "#1a2a2b",
+        accent: "#d6caca1f",
+        bgCard: "#1c1e21",
       },
       fontFamily: {
         roboto: ["Roboto", "sans-serif"],
@@ -17,7 +21,7 @@ export default {
     themes: [
       {
         light: {
-          background: "#171717",
+          background: "#181C1Fff",
         },
       },
     ],

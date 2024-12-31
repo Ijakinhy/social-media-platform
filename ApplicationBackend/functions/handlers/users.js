@@ -159,34 +159,22 @@ exports.addUserDetails = async (req, res) => {
     res.status(500).json({ general: "error happen while adding details" });
   }
 };
-//// fetch the authenticated user
-exports.getAuthenticatedUser = async (req, res) => {
+/// fetch specific user details
+exports.getUserDetails = async (req, res) => {
   try {
     let authUserDetails = {};
 
-    const userSnap = await db.doc(`/users/${req.user.handle}`).get();
+    const userSnap = await db.doc(`/users/${req.params.handle}`).get();
     const screamsSnap = await db
       .collection("screams")
+      .where("userHandle", "==", req.params.handle)
       .orderBy("createdAt", "desc")
-      .get();
-    const notificationsSnap = await db
-      .collection("notifications")
-      .where("recipient", "==", req.user.handle)
       .get();
 
     if (userSnap.exists) {
       authUserDetails.credentials = userSnap.data();
     }
 
-    authUserDetails.notifications = [];
-    if (!notificationsSnap.empty) {
-      notificationsSnap.forEach((doc) => {
-        authUserDetails.notifications.push({
-          notificationId: doc.id,
-          ...doc.data(),
-        });
-      });
-    }
     authUserDetails.screams = [];
     if (!screamsSnap.empty) {
       screamsSnap.forEach((doc) => {
@@ -200,6 +188,50 @@ exports.getAuthenticatedUser = async (req, res) => {
     return res.status(200).json(authUserDetails);
   } catch (error) {
     return res.status(403).json({ error: "error while fetching user data " });
+  }
+};
+//// fetch the authenticated user
+exports.getAuthenticatedUsed = async (req, res) => {
+  try {
+    let userData = {};
+    const userSnap = await db.doc(`/users/${req.user.handle}`).get();
+    const notificationSnap = await db
+      .collection("notifications")
+      .where("recipient", "==", req.user.handle)
+      .where("type", "in", ["like", "comment"])
+      .get();
+    const messagesNotSnap = await db
+      .collection("notifications")
+      .where("recipient", "==", req.user.handle)
+      .where("type", "==", "message")
+      .get();
+    userData.credentials = userSnap.data();
+    userData.notifications = [];
+
+    if (!notificationSnap.empty) {
+      notificationSnap.forEach((doc) => {
+        userData.notifications.push({
+          notificationId: doc.id,
+          ...doc.data(),
+        });
+      });
+    }
+    userData.messageNotifications = [];
+
+    if (!messagesNotSnap.empty) {
+      messagesNotSnap.forEach((doc) => {
+        userData.messageNotifications.push({
+          notificationId: doc.id,
+          ...doc.data(),
+        });
+      });
+    }
+    return res.status(201).json(userData);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ general: "error happen while fetching user details" });
   }
 };
 /// uploading profile image

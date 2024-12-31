@@ -9,12 +9,14 @@ const PrivateRouter = React.memo(({ authenticated }) => {
   const isTokenValid = useMemo(() => {
     if (token) {
       const decodedToken = jwtDecode(token);
-      return decodedToken.exp * 1000 > Date.now();
+      return decodedToken.exp * 1000 < Date.now();
     }
-    return false;
+    return true;
   }, [token]);
 
-  if (!isTokenValid) {
+  if (isTokenValid) {
+    console.log("token expired");
+
     localStorage.removeItem("token");
     delete axios.defaults.headers.common["Authorization"];
     return <Navigate to="/login" replace />;

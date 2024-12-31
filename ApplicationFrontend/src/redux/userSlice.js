@@ -44,6 +44,7 @@ export const signInUser = createAsyncThunk(
       setDefaultToken({ token });
       localStorage.setItem("token", token);
       navigate("/");
+
       return res.data;
     } catch (error) {
       console.log(error);
@@ -61,7 +62,7 @@ export const getAuthenticatedUser = createAsyncThunk(
       const userRes = (await axios.get("/api/user")).data;
       const screamRes = (await axios.get("/api/screams")).data;
 
-      console.log(userRes, screamRes);
+      console.log({ userRes, screamRes });
 
       return {
         user: userRes,
@@ -103,8 +104,12 @@ const userSlice = createSlice({
         state.loading.signin = false;
         state.errors = action.payload.error;
       })
+      .addCase(getAuthenticatedUser.pending, (state) => {
+        state.loading.app = true;
+        state.errors = {};
+      })
       .addCase(getAuthenticatedUser.fulfilled, (state, action) => {
-        state.loading.signin = false;
+        state.loading.app = false;
         state.userData = action.payload.user;
         state.screams = action.payload.screams;
       })

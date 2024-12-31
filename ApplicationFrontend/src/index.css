@@ -15,7 +15,7 @@
   --error: #d93025;
   --base-100: #ffffff;
   --base-content: #050505;
-  --muted-content: #606770;
+  --muted-content: hsl(214, 8%, 41%);
   --bg-support: #fff9d7;
   --border-support: #e2c822;
 }
@@ -24,6 +24,15 @@ body {
   @apply font-roboto;
 }
 
-/* .container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 md:px-8;
-} */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 2rem /* 64px */;
+  width: 100%;
+}
+:where(.navbar > *:not(script, style)) {
+  display: inline-flex;
+  align-items: center;
+}

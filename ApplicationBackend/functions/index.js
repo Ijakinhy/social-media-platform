@@ -14,11 +14,12 @@ const {
   signInUser,
   getUserData,
   addUserDetails,
-  getAuthenticatedUser,
   uploadProfilePic,
   markNotificationRead,
   blockUser,
   getUserMessages,
+  getUserDetails,
+  getAuthenticatedUsed,
 } = require("./handlers/users");
 const authMiddleware = require("./utils/authMiddleware");
 const {
@@ -45,7 +46,8 @@ app.get("/scream/:screamId/like", authMiddleware, likeScream); /// like   a  scr
 app.get("/scream/:screamId/unlike", authMiddleware, unlikeScream); /// unlike   a  scream
 app.delete("/scream/:screamId", authMiddleware, deleteScream); // delete scream
 app.post("/user", authMiddleware, addUserDetails);
-app.get("/user", authMiddleware, getAuthenticatedUser);
+app.get("/user/:handle", authMiddleware, getUserDetails);
+app.get("/user", authMiddleware, getAuthenticatedUsed);
 app.post("/user/image", authMiddleware, uploadProfilePic);
 app.get("/markNotificationRead", authMiddleware, markNotificationRead);
 app.get("/selectChat", authMiddleware, createChat);
