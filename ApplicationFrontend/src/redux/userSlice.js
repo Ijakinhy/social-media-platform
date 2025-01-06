@@ -9,6 +9,7 @@ const initialState = {
     signup: false,
     signin: false,
     app: false,
+    post: false,
   },
   screams: [],
   errors: {},
@@ -27,7 +28,7 @@ export const signupUser = createAsyncThunk(
       navigate("/");
       return res.data;
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       return rejectWithValue(error?.response?.data);
     }
   }
@@ -62,7 +63,7 @@ export const getAuthenticatedUser = createAsyncThunk(
       const userRes = (await axios.get("/api/user")).data;
       const screamRes = (await axios.get("/api/screams")).data;
 
-      console.log({ userRes, screamRes });
+      // console.log({ userRes, screamRes });
 
       return {
         user: userRes,
@@ -70,6 +71,24 @@ export const getAuthenticatedUser = createAsyncThunk(
       };
     } catch (error) {
       console.log(error);
+    }
+  }
+);
+export const createPost = createAsyncThunk(
+  "/createScream",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const res = await axios.post("/api/scream", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(res.data);
+
+      return res.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -92,6 +111,7 @@ const userSlice = createSlice({
         state.loading.signup = false;
         state.errors = action.payload.error;
       })
+      // sign in
       .addCase(signInUser.pending, (state) => {
         state.loading.signin = true;
         state.errors = {};
@@ -104,6 +124,7 @@ const userSlice = createSlice({
         state.loading.signin = false;
         state.errors = action.payload.error;
       })
+      // get authenticated user details
       .addCase(getAuthenticatedUser.pending, (state) => {
         state.loading.app = true;
         state.errors = {};
@@ -116,6 +137,18 @@ const userSlice = createSlice({
       .addCase(getAuthenticatedUser.rejected, (state, action) => {
         state.loading.app = false;
         state.errors = action.payload.error;
+      })
+      // create scream
+      .addCase(createPost.pending, (state) => {
+        state.loading.post = true;
+      })
+      .addCase(createPost.fulfilled, (state, action) => {
+        state.loading.post = false;
+        state.screams.unshift(action.payload);
+      })
+      .addCase(createPost.rejected, (state, action) => {
+        state.loading.post = false;
+        state.errors = action.payload;
       });
   },
 });

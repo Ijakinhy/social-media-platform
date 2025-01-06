@@ -1,21 +1,21 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getAuthenticatedUser } from "../redux/userSlice";
+import CreateScream from "../components/CreateScream";
 import Navbar from "../components/Navbar";
-
+import Scream from "../components/Scream";
+import { getAuthenticatedUser } from "../redux/userSlice";
+import Profile from "../components/Profile";
 const Home = () => {
   const dispatch = useDispatch();
   const {
     loading: { app },
+    userData: { credentials },
+    screams,
   } = useSelector((state) => state.user);
-
-  const navigate = useNavigate();
-  console.log("component mounted");
 
   useEffect(() => {
     dispatch(getAuthenticatedUser());
-    console.log(localStorage.token);
   }, []);
 
   return (
@@ -32,7 +32,22 @@ const Home = () => {
         </div>
       ) : (
         <div className="h-svh">
-          <Navbar />
+          <div className="sticky top-0 z-50">
+            <Navbar />
+          </div>
+
+          <div className=" flex   justify-center z-0">
+            {/* /// profile  */}
+            <Profile />
+            <div className="">
+              {/* ///  create card  post  */}
+              <CreateScream />
+              {/* ///  scream  Card */}
+              {screams.map((scream) => (
+                <Scream key={scream.screamId} scream={scream} />
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </>

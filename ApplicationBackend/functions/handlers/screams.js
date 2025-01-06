@@ -31,12 +31,15 @@ exports.postOneScream = async (req, res) => {
   const newScream = {
     createdAt: new Date().toISOString(),
     userHandle: req.user.handle,
-    profileImage:
-      "http://127.0.0.1:9199/v0/b/social-platform-ijakinhy.firebasestorage.app/o/default.jpg?alt=media",
+    profileImage: req.user.profileImage,
     likeCount: 0,
     commentCount: 0,
   };
   let imageUrl;
+  let imageFilename;
+  let imageToBeUploaded = {};
+  let hasDescription = false;
+  let hasImage = false;
 
   const bb = busboy({ headers: req.headers });
 
@@ -44,6 +47,7 @@ exports.postOneScream = async (req, res) => {
   bb.on("field", (name, value, info) => {
     if (name === "description") {
       newScream.description = value;
+      hasDescription = true;
     }
   });
   //  file
@@ -54,15 +58,16 @@ exports.postOneScream = async (req, res) => {
       return res.status(400).json({ message: "Wrong file type submitted" });
     }
     const imageExtension = filename.split(".").pop();
-    const imageFilename = `${Math.floor(
-      Math.random() * 10000
-    )}.${imageExtension}`;
+    imageFilename = `${Math.floor(Math.random() * 10000)}.${imageExtension}`;
     const filepath = path.join(os.tmpdir(), imageFilename);
-    const imageToBeUploaded = { filepath, mimeType };
+    imageToBeUploaded = { filepath, mimeType };
     file.pipe(fs.createWriteStream(filepath));
+    hasImage = true;
+  });
 
-    file.on("end", async () => {
-      try {
+  bb.on("finish", async () => {
+    try {
+      if (hasImage) {
         await admin
           .storage()
           .bucket()
@@ -75,44 +80,23 @@ exports.postOneScream = async (req, res) => {
             },
           });
         imageUrl = `http://127.0.0.1:9199/v0/b/${firebaseConfig.storageBucket}/o/${imageFilename}?alt=media`;
-        const docRef = await db
-          .collection("screams") // bb.on("finish", async () => {
-          //   try {
-          //     // newScream.screamImage = imageUrl;
-          //     console.log(imageUrl);
-
-          //     const docRef = await db.collection("screams").add(newScream);
-          //     res.status(201).json(newScream);
-          //     newScream.screamId = docRef.id;
-          //   } catch (error) {
-          //     console.error(error);
-          //     res.status(500).send("Error while saving scream to Firestore.");
-          //   }
-          // });
-          .add({ ...newScream, screamImage: imageUrl });
-        res
-          .status(201)
-          .json({ ...newScream, screamImage: imageUrl, screamId: docRef.id });
-        // newScream.screamImage = imageUrl;
-      } catch (error) {
-        console.error(error);
-        res.status(500).send("Error while uploading file.");
+        newScream.screamImage = imageUrl;
       }
-    });
-  });
-  // bb.on("finish", async () => {
-  //   try {
-  //     // newScream.screamImage = imageUrl;
-  //     console.log(imageUrl);
 
-  //     const docRef = await db.collection("screams").add(newScream);
-  //     res.status(201).json(newScream);
-  //     newScream.screamId = docRef.id;
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).send("Error while saving scream to Firestore.");
-  //   }
-  // });
+      if (!hasDescription && !hasImage) {
+        return res.status(400).json({
+          message: "At least one of 'description' or 'image' must be provided",
+        });
+      }
+
+      const docRef = await db.collection("screams").add(newScream);
+      res.status(201).json({ ...newScream, screamId: docRef.id });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error while uploading file.");
+    }
+  });
+
   bb.on("error", () => {
     console.error("busboy error");
     res.status(500).send("error while creating a scream!");

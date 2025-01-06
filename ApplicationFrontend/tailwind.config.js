@@ -8,11 +8,13 @@ export default {
         borderSupport: "var(--border-support)",
         bgOpacity: "rgba(238, 241, 243, 0.2)",
         bgDropDown: "#1a2a2b",
-        accent: "#d6caca1f",
-        bgCard: "#1c1e21",
+        accent: "rgb(243 244 246 / 0.2)",
+        bgCard: "#252728",
+        iconColor: "#ffffff1a",
       },
       fontFamily: {
-        roboto: ["Roboto", "sans-serif"],
+        roboto: ["Roboto", "sans-serif", "Afacad Flux"],
+        afacad: ['"Afacad Flux"', "sans-serif"],
       },
     },
   },
@@ -21,7 +23,7 @@ export default {
     themes: [
       {
         light: {
-          background: "#181C1Fff",
+          background: "rgb(28, 30, 33)",
         },
       },
     ],

@@ -19,7 +19,8 @@ const PrivateRouter = React.memo(({ authenticated }) => {
 
     localStorage.removeItem("token");
     delete axios.defaults.headers.common["Authorization"];
-    return <Navigate to="/login" replace />;
+
+    return <Navigate to="/login" />;
   }
 
   return token ? <Outlet /> : <Navigate to="/login" replace />;
