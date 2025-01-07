@@ -4,14 +4,17 @@ import axios from "axios";
 import setDefaultToken from "../utils/setDefaultToken";
 
 const initialState = {
-  userData: {},
+  credentials: {},
   loading: {
     signup: false,
     signin: false,
     app: false,
     post: false,
   },
+
   screams: [],
+  notifications: [],
+  messageNotifications: [],
   errors: {},
 };
 
@@ -93,6 +96,14 @@ export const createPost = createAsyncThunk(
   }
 );
 
+export const readNotifications = createAsyncThunk(
+  "/read/notification",
+  async () => {
+    const res = await axios.get("/api/markNotificationRead");
+    return res.data;
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -105,7 +116,7 @@ const userSlice = createSlice({
       })
       .addCase(signupUser.fulfilled, (state, action) => {
         state.loading.signup = false;
-        state.userData = action.payload;
+        state.credentials = action.payload;
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading.signup = false;
@@ -118,7 +129,7 @@ const userSlice = createSlice({
       })
       .addCase(signInUser.fulfilled, (state, action) => {
         state.loading.signin = false;
-        state.userData = action.payload;
+        state.credentials = action.payload;
       })
       .addCase(signInUser.rejected, (state, action) => {
         state.loading.signin = false;
@@ -131,7 +142,10 @@ const userSlice = createSlice({
       })
       .addCase(getAuthenticatedUser.fulfilled, (state, action) => {
         state.loading.app = false;
-        state.userData = action.payload.user;
+
+        state.credentials = action.payload.user.credentials;
+        state.notifications = action.payload.user.notifications;
+        state.messageNotifications = action.payload.user.messageNotifications;
         state.screams = action.payload.screams;
       })
       .addCase(getAuthenticatedUser.rejected, (state, action) => {
@@ -149,6 +163,12 @@ const userSlice = createSlice({
       .addCase(createPost.rejected, (state, action) => {
         state.loading.post = false;
         state.errors = action.payload;
+      })
+      ///  read notification
+      .addCase(readNotifications.fulfilled, (state) => {
+        state.notifications = state.notifications.map((notification) =>
+          !notification.read ? { ...notification, read: true } : notification
+        );
       });
   },
 });

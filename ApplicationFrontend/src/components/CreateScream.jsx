@@ -10,7 +10,7 @@ const CreateScream = () => {
   const [image, setImage] = useState(null);
   const {
     loading: { app, post },
-    userData: { credentials },
+    credentials,
     screams,
   } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -31,7 +31,7 @@ const CreateScream = () => {
   };
   return (
     <>
-      <div className="card  w-[39rem] px-4 pt-2 mt-4 bg-bgCard   h-32 shadow-xl">
+      <div className="card  w-[39rem] max-sm:w-[29rem] px-4 pt-2 mt-4 bg-bgCard   h-32 shadow-xl">
         <div className="flex items-center">
           <img
             className="w-12 h-12 rounded-full object-cover mr-3.5"

@@ -38,10 +38,8 @@ const Scream = ({ scream }) => {
     },
   });
 
-  console.log(screamImage);
-
   return (
-    <div className="card bg-bgCard my-4 rounded-md w-[39rem]  s shadow-2xl">
+    <div className="flex flex-col relative bg-bgCard my-4 rounded-md max-sm:w-[29rem] w-[39rem]   shadow-2xl">
       {/* /// card  header */}
       <div className="pl-3  flex items-center justify-between py-2">
         <div className="flex items-center">
@@ -73,7 +71,7 @@ const Scream = ({ scream }) => {
         {description}
       </p>
 
-      {/* card image */}
+      {/* {/* card image */}
       {screamImage && (
         <figure className="">
           <img

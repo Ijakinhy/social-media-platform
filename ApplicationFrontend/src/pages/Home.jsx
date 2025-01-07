@@ -10,7 +10,6 @@ const Home = () => {
   const dispatch = useDispatch();
   const {
     loading: { app },
-    userData: { credentials },
     screams,
   } = useSelector((state) => state.user);
 
@@ -31,8 +30,8 @@ const Home = () => {
           </div>
         </div>
       ) : (
-        <div className="h-svh">
-          <div className="sticky top-0 z-50">
+        <div className="h-full">
+          <div className="sticky top-0 z-[1000]">
             <Navbar />
           </div>
 

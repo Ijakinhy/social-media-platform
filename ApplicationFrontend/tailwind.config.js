@@ -11,6 +11,7 @@ export default {
         accent: "rgb(243 244 246 / 0.2)",
         bgCard: "#252728",
         iconColor: "#ffffff1a",
+        bgCard2: "#1c1e21",
       },
       fontFamily: {
         roboto: ["Roboto", "sans-serif", "Afacad Flux"],

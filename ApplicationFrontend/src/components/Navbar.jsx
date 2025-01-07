@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../images/logo.jpg";
 import { FaHome, FaSearch } from "react-icons/fa";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { MdOutlineLogout } from "react-icons/md";
 import logoutIcon from "../images/logOutIcon.png";
 import { IoIosNotifications } from "react-icons/io";
@@ -10,9 +10,32 @@ import { FaFacebookMessenger } from "react-icons/fa6";
 import { FiPlus } from "react-icons/fi";
 import NotIcon from "../utils/NotIcon";
 import { RiArrowDropDownLine } from "react-icons/ri";
+import Notification from "./Notification";
+import { readNotifications } from "../redux/userSlice";
 const Navbar = () => {
-  const { userData } = useSelector((state) => state.user);
-  const { credentials } = userData;
+  const [isOpen, setIsOpen] = useState(false);
+  const [alreadyNotRead, setAlreadyNotRead] = useState(false);
+  const { credentials, notifications } = useSelector((state) => state.user);
+
+  const dispatch = useDispatch();
+  const notReadNots = notifications?.filter(
+    (notification) => !notification.read
+  );
+
+  const handleReadNotification = () => {
+    if (!alreadyNotRead && notReadNots.length > 0) {
+      dispatch(readNotifications());
+      setAlreadyNotRead(true);
+    }
+    setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    ////  reset the setAlreadyNotRead when new notifications arrive
+    if (notReadNots.length > 0) {
+      setAlreadyNotRead(false);
+    }
+  }, [notReadNots]);
 
   return (
     <>
@@ -48,14 +71,26 @@ const Navbar = () => {
               </div>
             </button>
             {/* notification */}
-            <button className=" w-10 h-10 py-auto mr-4 pt-1.5  b rounded-full bg-gray-100/20 border-none ">
-              <div className="indicator">
-                <NotIcon />
-                <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
-                  1
-                </span>
-              </div>
-            </button>
+            <div className="dropdown max-sm:dropdown-end ">
+              <button
+                className="  w-10 h-10 py-auto mr-4 pt-1.5  b rounded-full bg-gray-100/5 border-none "
+                onClick={handleReadNotification}
+              >
+                <div className="indicator">
+                  <NotIcon />
+
+                  <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
+                    {!!notReadNots?.length && notReadNots?.length}
+                  </span>
+                </div>
+              </button>
+
+              {isOpen && (
+                <div className="menu dropdown-content bg-bgCard2   z-[10]  w-[18rem] p-2 shadow">
+                  <Notification />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className=" items-center">

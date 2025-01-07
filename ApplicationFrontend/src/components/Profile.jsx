@@ -7,7 +7,7 @@ import emailIcon from "../images/emailIcon.png";
 const Profile = () => {
   const {
     loading: { app },
-    userData: { credentials },
+    credentials,
     screams,
   } = useSelector((state) => state.user);
   return (
