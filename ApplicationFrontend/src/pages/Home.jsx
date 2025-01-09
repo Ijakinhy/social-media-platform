@@ -1,12 +1,15 @@
-import React, { useEffect } from "react";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import CreateScream from "../components/CreateScream";
 import Navbar from "../components/Navbar";
-import Scream from "../components/Scream";
-import { getAuthenticatedUser } from "../redux/userSlice";
 import Profile from "../components/Profile";
+import Scream from "../components/Scream";
+import { db } from "../firebase";
+import { addNewScream, getAuthenticatedUser } from "../redux/userSlice";
 const Home = () => {
+  const [triggerScreamSnap, setTriggerScreamSnap] = useState(false);
+
   const dispatch = useDispatch();
   const {
     loading: { app },
@@ -16,6 +19,33 @@ const Home = () => {
   useEffect(() => {
     dispatch(getAuthenticatedUser());
   }, []);
+
+  /// event listener for created scream
+  useEffect(() => {
+    let IsInitialSnap = true;
+    const screamCollection = collection(db, "screams");
+    const screamsColQuery = query(
+      screamCollection,
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(screamsColQuery, (snapshot) => {
+      if (IsInitialSnap) {
+        IsInitialSnap = false;
+        return;
+      }
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const newScream = { ...change.doc.data(), screamId: change.doc.id };
+
+          dispatch(addNewScream(newScream));
+        }
+      });
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [dispatch]);
 
   return (
     <>

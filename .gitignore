@@ -11,8 +11,10 @@ firebase-debug.*.log
 ApplicationBackend/functions/lib/
 ApplicationBackend/functions/node_modules/
 ApplicationBackend/functions/.cache/
-ApplicationBackend/functions/emulator-data
+ApplicationBackend/functions/emulator-data/
 ApplicationBackend/.env
+firebase-export-*/
+firebase-export-1734722883654yYu9Sg
 
 # IDE/editor specific files
 .idea/
@@ -32,3 +34,7 @@ ApplicationBackend/.env
 service-account.json
 #  eslint 
 .eslintcache
+
+
+#firebase 
+firebase.js

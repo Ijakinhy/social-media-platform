@@ -1,9 +1,9 @@
 import React, { useState } from "react";
+import { IoMdClose } from "react-icons/io";
+import { useDispatch, useSelector } from "react-redux";
 import cameraIcon from "../images/cameraIcon.png";
 import emojiIcon from "../images/emojiIcon.png";
 import imageIcon from "../images/imageIcon.png";
-import { useDispatch, useSelector } from "react-redux";
-import { IoMdClose } from "react-icons/io";
 import { createPost } from "../redux/userSlice";
 const CreateScream = () => {
   const [text, setText] = useState("");
@@ -17,6 +17,8 @@ const CreateScream = () => {
   const handleChangeImage = (e) => {
     setImage(e.target.files[0]);
   };
+
+  ///  handle add new scream
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -28,7 +30,9 @@ const CreateScream = () => {
     if (!post) {
       document.getElementById("my-modal").checked = false;
     }
+    setTriggerSnapshot(true);
   };
+
   return (
     <>
       <div className="card  w-[39rem] max-sm:w-[29rem] px-4 pt-2 mt-4 bg-bgCard   h-32 shadow-xl">

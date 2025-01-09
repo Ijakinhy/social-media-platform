@@ -87,7 +87,13 @@ const Navbar = () => {
 
               {isOpen && (
                 <div className="menu dropdown-content bg-bgCard2   z-[10]  w-[18rem] p-2 shadow">
-                  <Notification />
+                  {!!notifications.length ? (
+                    <Notification />
+                  ) : (
+                    <h2 className="text-gray-300 text-center font-bold">
+                      You've not notification
+                    </h2>
+                  )}
                 </div>
               )}
             </div>

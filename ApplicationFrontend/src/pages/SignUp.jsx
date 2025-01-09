@@ -21,8 +21,8 @@ const SignUp = () => {
   const handleSignup = (e) => {
     console.log(formData);
     e.preventDefault();
-    dispatch(signupUser({ formData, navigate }));
-    setFormData({ handle: "", email: "", password: "" });
+    // dispatch(signupUser({ formData, navigate }));
+    // setFormData({ handle: "", email: "", password: "" });
   };
 
   return (

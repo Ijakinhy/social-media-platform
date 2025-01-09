@@ -60,8 +60,12 @@ const Profile = () => {
           </p>
         </div>
         <div className="flex items-center mt-4">
-          <img src={emailIcon} className="ml-2" alt="phone number icon" />
-          <p className="ml-5 text-gray-200 text-left tracking-wide leading-[1]">
+          <img
+            src={emailIcon}
+            className="ml-2 max-md:ml-1"
+            alt="phone number icon"
+          />
+          <p className="ml-5 text-gray-200 text-left   tracking-wide leading-[1]">
             {credentials?.email}
             <br />
             <small className=" text-gray-400/65 ml-1 text-xs leading-none">

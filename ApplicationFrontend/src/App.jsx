@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import { Route, Router, Routes, useNavigate } from "react-router-dom";
@@ -16,8 +16,10 @@ export default function App() {
       navigate("/");
     }
   }, [localStorage.token]);
+
   return (
     <>
+      <h1>hello</h1>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/SignUp" element={<SignUp />} />

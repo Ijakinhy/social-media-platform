@@ -86,7 +86,6 @@ export const createPost = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
@@ -107,7 +106,17 @@ export const readNotifications = createAsyncThunk(
 const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {},
+  reducers: {
+    ///  to be used in onSnapshot
+    addNewScream: (state, action) => {
+      const newScream = action.payload;
+      if (
+        !state.screams.some((scream) => scream.screamId === newScream.screamId)
+      ) {
+        state.screams.unshift(newScream);
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(signupUser.pending, (state) => {
@@ -158,7 +167,14 @@ const userSlice = createSlice({
       })
       .addCase(createPost.fulfilled, (state, action) => {
         state.loading.post = false;
-        state.screams.unshift(action.payload);
+        const newScream = action.payload;
+        if (
+          !state.screams.some(
+            (scream) => scream.screamId === newScream.screamId
+          )
+        ) {
+          state.screams.unshift(newScream);
+        }
       })
       .addCase(createPost.rejected, (state, action) => {
         state.loading.post = false;
@@ -172,5 +188,7 @@ const userSlice = createSlice({
       });
   },
 });
+
+export const { addNewScream } = userSlice.actions;
 
 export default userSlice.reducer;
