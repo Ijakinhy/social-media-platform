@@ -19,7 +19,6 @@ export default function App() {
 
   return (
     <>
-      <h1>hello</h1>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/SignUp" element={<SignUp />} />

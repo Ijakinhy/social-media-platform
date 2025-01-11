@@ -1,10 +1,23 @@
+import React, { useEffect } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
-import React from "react";
-import { AiOutlineComment, AiOutlineLike } from "react-icons/ai";
+import { AiOutlineComment, AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { BiDotsHorizontalRounded } from "react-icons/bi";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addLikeNotification,
+  deleteNotificationOnUnlike,
+  likeScream,
+  unlikeScream,
+  updateLikeCount,
+} from "../redux/userSlice";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
+
 const Scream = ({ scream }) => {
+  const dispatch = useDispatch();
+  const { likes, credentials } = useSelector((state) => state.user);
   const {
     userHandle,
     createdAt,
@@ -13,6 +26,7 @@ const Scream = ({ scream }) => {
     screamImage,
     profileImage,
     commentCount,
+    screamId,
   } = scream;
   dayjs.extend(relativeTime);
   dayjs.extend(updateLocale);
@@ -37,6 +51,93 @@ const Scream = ({ scream }) => {
       },
     },
   });
+  const isScreamAlreadyLiked = likes.some(
+    (like) =>
+      like?.screamId === screamId && like?.userHandle === credentials.handle
+  );
+
+  const toggleLikeBtn = !!isScreamAlreadyLiked ? (
+    <AiFillLike className="ml-2 text-sky-500 text-2xl" />
+  ) : (
+    <AiOutlineLike className="ml-2 text-gray-300 text-2xl" />
+  );
+
+  const handleLikeScream = () => {
+    isScreamAlreadyLiked
+      ? dispatch(unlikeScream(screamId))
+      : dispatch(likeScream(screamId));
+  };
+
+  useEffect(() => {
+    /// event listener for created notifications
+    const notificationCollection = collection(db, "notifications");
+    let isInitialSnapNotifications = true;
+
+    const unsubscribeNotification = onSnapshot(
+      notificationCollection,
+      (snapshot) => {
+        if (isInitialSnapNotifications) {
+          isInitialSnapNotifications = false;
+          return;
+        }
+        snapshot.docChanges().forEach((change) => {
+          const newNotification = {
+            ...change.doc.data(),
+            notificationId: change.doc.id,
+          };
+          if (change.type === "added") {
+            if (
+              newNotification.recipient === credentials.handle &&
+              (newNotification.type === "like" ||
+                newNotification.type === "comment")
+            ) {
+              dispatch(addLikeNotification(newNotification));
+            }
+          } else if (change.type === "removed") {
+            const notificationToBeRemoved = {
+              ...change.doc.data(),
+              notificationId: change.doc.id,
+            };
+            if (
+              notificationToBeRemoved.recipient === credentials.handle &&
+              (notificationToBeRemoved.type === "like" ||
+                notificationToBeRemoved.type === "comment")
+            ) {
+              dispatch(deleteNotificationOnUnlike(notificationToBeRemoved));
+            }
+          }
+        });
+      }
+    );
+
+    // unsubscribe from scream collection
+    let screamCountLikeAndCountStarts = true;
+    const unsubscribeScream = onSnapshot(
+      collection(db, "screams"),
+      (snapshot) => {
+        if (screamCountLikeAndCountStarts) {
+          screamCountLikeAndCountStarts = false;
+          return;
+        }
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "modified") {
+            const updatedScream = {
+              ...change.doc.data(),
+              screamId: change.doc.id,
+            };
+            if (updatedScream.likeCount !== likeCount) {
+              dispatch(updateLikeCount(updatedScream));
+            }
+          }
+        });
+      }
+    );
+
+    return () => {
+      unsubscribeNotification();
+      unsubscribeScream();
+    };
+  }, [dispatch]);
 
   return (
     <div className="flex flex-col relative bg-bgCard my-4 rounded-md max-sm:w-[29rem] w-[39rem]   shadow-2xl">
@@ -89,9 +190,14 @@ const Scream = ({ scream }) => {
         </p>
         <div className=" w-[100%] h-[0.2px] bg-gray-400/80" />
         <div className="mt-2 flex items-center justify-between  ">
-          <button className=" w-[48%] h-1 mr-2 ml-2  py-[14px]  justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400 font-afacad text-[1.125rem]   ">
+          {}
+          <button
+            onClick={handleLikeScream}
+            className=" w-[48%] h-1 mr-2 ml-2  py-[14px]  justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400 font-afacad text-[1.125rem]   "
+          >
             {likeCount}
-            <AiOutlineLike className="ml-2 text-gray-300 text-2xl" />
+            {toggleLikeBtn}
+            {/* <AiOutlineLike className="ml-2 text-gray-300 text-2xl" /> */}
           </button>
           <button className=" w-[48%] h-1 mr-2 ml-2  py-[14px]  justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400  text-[1.125rem]   ">
             {commentCount}

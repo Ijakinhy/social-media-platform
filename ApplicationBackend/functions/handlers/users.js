@@ -226,6 +226,23 @@ exports.getAuthenticatedUsed = async (req, res) => {
         });
       });
     }
+
+    ///  get likes
+    userData.likes = [];
+    const likesSnap = await db
+      .collection("likes")
+      .where("userHandle", "==", req.user.handle)
+      .get();
+
+    if (!likesSnap.empty) {
+      likesSnap.forEach((doc) => {
+        userData.likes.push({
+          likeId: doc.id,
+          ...doc.data(),
+        });
+      });
+    }
+
     return res.status(201).json(userData);
   } catch (error) {
     console.error(error);

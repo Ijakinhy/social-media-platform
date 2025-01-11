@@ -1,4 +1,10 @@
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CreateScream from "../components/CreateScream";
@@ -6,7 +12,12 @@ import Navbar from "../components/Navbar";
 import Profile from "../components/Profile";
 import Scream from "../components/Scream";
 import { db } from "../firebase";
-import { addNewScream, getAuthenticatedUser } from "../redux/userSlice";
+import {
+  addLikeNotification,
+  addNewScream,
+  getAuthenticatedUser,
+  updateLikeCount,
+} from "../redux/userSlice";
 const Home = () => {
   const [triggerScreamSnap, setTriggerScreamSnap] = useState(false);
 
@@ -14,6 +25,7 @@ const Home = () => {
   const {
     loading: { app },
     screams,
+    credentials,
   } = useSelector((state) => state.user);
 
   useEffect(() => {
@@ -23,13 +35,17 @@ const Home = () => {
   /// event listener for created scream
   useEffect(() => {
     let IsInitialSnap = true;
+    let isInitialSnapNotifications = true;
+    let isInitialSnapLikeAndUnlike = true;
+
     const screamCollection = collection(db, "screams");
+    const notificationCollection = collection(db, "notifications");
     const screamsColQuery = query(
       screamCollection,
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(screamsColQuery, (snapshot) => {
+    const unsubscribeScream = onSnapshot(screamsColQuery, (snapshot) => {
       if (IsInitialSnap) {
         IsInitialSnap = false;
         return;
@@ -42,8 +58,9 @@ const Home = () => {
         }
       });
     });
+
     return () => {
-      unsubscribe();
+      unsubscribeScream();
     };
   }, [dispatch]);
 

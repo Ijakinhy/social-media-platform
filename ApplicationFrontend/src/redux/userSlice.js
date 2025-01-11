@@ -15,6 +15,7 @@ const initialState = {
   screams: [],
   notifications: [],
   messageNotifications: [],
+  likes: [],
   errors: {},
 };
 
@@ -95,6 +96,7 @@ export const createPost = createAsyncThunk(
   }
 );
 
+///  mark notification  read
 export const readNotifications = createAsyncThunk(
   "/read/notification",
   async () => {
@@ -103,11 +105,37 @@ export const readNotifications = createAsyncThunk(
   }
 );
 
+////  like the scream
+
+export const likeScream = createAsyncThunk("/scream/like", async (screamId) => {
+  try {
+    const res = await axios.get(`/api/scream/${screamId}/like`);
+
+    return res.data;
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+////  unlike the scream
+
+export const unlikeScream = createAsyncThunk(
+  "/scream/unlike",
+  async (screamId) => {
+    try {
+      const res = await axios.get(`/api/scream/${screamId}/unlike`);
+
+      return res.data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    ///  to be used in onSnapshot
+    ///  add real time update to add scream
     addNewScream: (state, action) => {
       const newScream = action.payload;
       if (
@@ -115,6 +143,40 @@ const userSlice = createSlice({
       ) {
         state.screams.unshift(newScream);
       }
+    },
+    ///  update the like count in real time
+    updateLikeCount: (state, action) => {
+      console.log(action.payload);
+
+      state.screams = state.screams.map((scream) =>
+        scream.screamId === action.payload.screamId
+          ? { ...scream, likeCount: action.payload.likeCount }
+          : scream
+      );
+    },
+    // real time notification  on like
+    addLikeNotification: (state, action) => {
+      if (
+        !state.notifications.some(
+          (notification) =>
+            notification.screamId === action.payload.screamId &&
+            notification.sender == action.payload.sender
+        )
+      ) {
+        state.notifications.unshift(action.payload);
+      }
+    },
+
+    // delete real time notification  on unlike
+    deleteNotificationOnUnlike: (state, action) => {
+      state.notifications = state.notifications.filter(
+        (notification) =>
+          !(
+            notification.screamId === action.payload.screamId &&
+            notification.sender === action.payload.sender &&
+            notification.type === "like"
+          )
+      );
     },
   },
   extraReducers: (builder) => {
@@ -156,6 +218,7 @@ const userSlice = createSlice({
         state.notifications = action.payload.user.notifications;
         state.messageNotifications = action.payload.user.messageNotifications;
         state.screams = action.payload.screams;
+        state.likes = action.payload.user.likes;
       })
       .addCase(getAuthenticatedUser.rejected, (state, action) => {
         state.loading.app = false;
@@ -185,10 +248,38 @@ const userSlice = createSlice({
         state.notifications = state.notifications.map((notification) =>
           !notification.read ? { ...notification, read: true } : notification
         );
+      })
+      ///  like scream
+      .addCase(likeScream.fulfilled, (state, action) => {
+        state.screams = state.screams.map((scream) =>
+          scream.screamId === action.payload.screamId
+            ? { ...scream, likeCount: action.payload.likeCount }
+            : scream
+        );
+        state.likes.unshift(action.payload);
+      })
+      ///  unlike scream
+      .addCase(unlikeScream.fulfilled, (state, action) => {
+        state.screams = state.screams.map((scream) =>
+          scream.screamId === action.payload.screamId
+            ? {
+                ...scream,
+                likeCount: action.payload.likeCount,
+              }
+            : scream
+        );
+        state.likes = state.likes.filter(
+          (like) => like.screamId !== action.payload.screamId
+        );
       });
   },
 });
 
-export const { addNewScream } = userSlice.actions;
+export const {
+  addNewScream,
+  addLikeNotification,
+  deleteNotificationOnUnlike,
+  updateLikeCount,
+} = userSlice.actions;
 
 export default userSlice.reducer;

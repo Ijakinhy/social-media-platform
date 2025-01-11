@@ -141,6 +141,12 @@ exports.addCommentScream = async (req, res) => {
 
 exports.likeScream = async (req, res) => {
   try {
+    const likesDetails = {
+      createdAt: new Date().toISOString(),
+      screamId: req.params.screamId,
+      profileImage: req.user.profileImage,
+      userHandle: req.user.handle,
+    };
     const screamDoc = db.doc(`/screams/${req.params.screamId}`);
     const screamSnap = await screamDoc.get();
     const likeSnap = await db
@@ -154,24 +160,12 @@ exports.likeScream = async (req, res) => {
     if (likeSnap.docs.length > 0) {
       return res.status(400).json({ error: "Scream already liked" });
     }
-    const notificationsRef = db.collection("notifications").doc();
-    await db.runTransaction(async (transaction) => {
-      ///  like scream and update scream like count
-      transaction.set(db.collection("likes").doc(), {
-        screamId: req.params.screamId,
-        userHandle: req.user.handle,
-        createdAt: new Date().toISOString(),
-        profileImage: req.user.profileImage,
-      });
 
-      const updatedLikeCount = screamSnap.data().likeCount + 1;
-      transaction.update(screamDoc, { likeCount: updatedLikeCount });
-    });
+    await db.collection("likes").add(likesDetails);
 
     return res.status(201).json({
-      ...screamSnap.data(),
+      ...likesDetails,
       likeCount: screamSnap.data().likeCount + 1,
-      screamId: screamSnap.id,
     });
   } catch (error) {
     console.error(error);
@@ -201,19 +195,14 @@ exports.unlikeScream = async (req, res) => {
       return res.status(400).json({ error: "Scream  not liked" });
     }
 
-    await db.runTransaction(async (transaction) => {
-      /// delete like and update scream like count
-      transaction.delete(likeSnap.docs[0].ref);
-
-      const updatedLikeCount = screamSnap.data().likeCount - 1;
-      transaction.update(screamDoc, { likeCount: updatedLikeCount });
-    });
+    await db.doc(`/likes/${likeSnap.docs[0].id}`).delete();
 
     return res.status(201).json({
       ...screamSnap.data(),
       likeCount: !screamSnap.data().likeCount
         ? 0
         : screamSnap.data().likeCount - 1,
+      screamId: req.params.screamId,
     });
   } catch (error) {
     console.error(error);

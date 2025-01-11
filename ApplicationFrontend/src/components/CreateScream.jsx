@@ -30,7 +30,6 @@ const CreateScream = () => {
     if (!post) {
       document.getElementById("my-modal").checked = false;
     }
-    setTriggerSnapshot(true);
   };
 
   return (

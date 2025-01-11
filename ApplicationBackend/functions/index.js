@@ -45,21 +45,21 @@ app.post("/scream/:screamId/comment", authMiddleware, addCommentScream); ///  co
 app.get("/scream/:screamId/like", authMiddleware, likeScream); /// like   a  scream
 app.get("/scream/:screamId/unlike", authMiddleware, unlikeScream); /// unlike   a  scream
 app.delete("/scream/:screamId", authMiddleware, deleteScream); // delete scream
-app.post("/user", authMiddleware, addUserDetails);
-app.get("/user/:handle", authMiddleware, getUserDetails);
-app.get("/user", authMiddleware, getAuthenticatedUsed);
-app.post("/user/image", authMiddleware, uploadProfilePic);
-app.get("/markNotificationRead", authMiddleware, markNotificationRead);
-app.get("/selectChat", authMiddleware, createChat);
-app.post("/sendMessage/:recipient", authMiddleware, sendMessage);
-app.get("/markMessageSeen", authMiddleware, markMessageSeen);
+app.post("/user", authMiddleware, addUserDetails); ///  add user details
+app.get("/user/:handle", authMiddleware, getUserDetails); ///  get user details
+app.get("/user", authMiddleware, getAuthenticatedUsed); ///  get authenticated user
+app.post("/user/image", authMiddleware, uploadProfilePic); ////  edit or or add profile details
+app.get("/markNotificationRead", authMiddleware, markNotificationRead); ///  mark notification read
+app.get("/selectChat", authMiddleware, createChat); ///  create chats
+app.post("/sendMessage/:recipient", authMiddleware, sendMessage); ///  send messages
+app.get("/markMessageSeen", authMiddleware, markMessageSeen); // mark message seen
 app.get(
   "/markMessageNotificationRead",
   authMiddleware,
   markMessageNotificationRead
-);
-app.get("/blockUser/:userId", authMiddleware, blockUser);
-app.get("/getUserMessages/:sender", authMiddleware, getUserMessages);
+); ////  read chats notifications
+app.get("/blockUser/:userId", authMiddleware, blockUser); ///  block the user
+app.get("/getUserMessages/:sender", authMiddleware, getUserMessages); ///  get  user messages
 
 exports.api = functions.https.onRequest(app);
 
@@ -87,7 +87,7 @@ exports.createSmsNotifications = onDocumentCreated(
   }
 );
 
-//  create notification on like
+//  create notification on like and increase scream likeCount
 
 exports.createLikeNotifications = onDocumentCreated(
   "/likes/{id}",
@@ -96,7 +96,9 @@ exports.createLikeNotifications = onDocumentCreated(
     const screamSnap = (
       await db.doc(`/screams/${likes.screamId}`).get()
     ).data();
-    if (event.data.data().userHandle !== screamSnap.userHandle) {
+
+    ////  create notification
+    if (likes.userHandle !== screamSnap.userHandle) {
       await db.collection("notifications").add({
         recipient: screamSnap.userHandle,
         sender: likes.userHandle,
@@ -107,16 +109,24 @@ exports.createLikeNotifications = onDocumentCreated(
         profileImage: likes.profileImage,
       });
     }
+
+    /// increase scream likeCount
+    const screamDoc = db.doc(`/screams/${likes.screamId}`);
+    const scream = await screamDoc.get();
+    if (scream.exists) {
+      await screamDoc.update({ likeCount: scream.data().likeCount + 1 });
+    }
   }
 );
 
-////  delete notification on unlike
+////  delete notification on unlike and  decrease the scream likeCount
 
 exports.deleteLikeNotification = onDocumentDeleted(
   "/likes/{id}",
   async (event) => {
     const data = event.data.data();
 
+    //
     const notificationSnap = await db
       .collection("notifications")
       .where("sender", "==", data.userHandle)
@@ -126,6 +136,15 @@ exports.deleteLikeNotification = onDocumentDeleted(
     notificationSnap.forEach(async (doc) => {
       await doc.ref.delete();
     });
+
+    /// decrease the scream likeCount
+
+    const screamDoc = db.doc(`/screams/${data.screamId}`);
+    const scream = await screamDoc.get();
+
+    if (scream.exists) {
+      await screamDoc.update({ likeCount: scream.data().likeCount - 1 });
+    }
   }
 );
 
