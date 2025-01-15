@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
@@ -8,15 +8,21 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addLikeNotification,
   deleteNotificationOnUnlike,
+  fetchScreamDetails,
   likeScream,
   unlikeScream,
+  updateCommentCount,
   updateLikeCount,
 } from "../redux/userSlice";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
+import AddComment from "./AddComment";
 
 const Scream = ({ scream }) => {
   const dispatch = useDispatch();
+  const [triggerRender, setTriggerRender] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
+
   const { likes, credentials } = useSelector((state) => state.user);
   const {
     userHandle,
@@ -71,26 +77,26 @@ const Scream = ({ scream }) => {
   useEffect(() => {
     /// event listener for created notifications
     const notificationCollection = collection(db, "notifications");
+    const notificationQuery = query(
+      notificationCollection,
+      where("type", "in", ["like", "comment"])
+    );
     let isInitialSnapNotifications = true;
 
     const unsubscribeNotification = onSnapshot(
-      notificationCollection,
+      notificationQuery,
       (snapshot) => {
         if (isInitialSnapNotifications) {
           isInitialSnapNotifications = false;
           return;
         }
         snapshot.docChanges().forEach((change) => {
-          const newNotification = {
-            ...change.doc.data(),
-            notificationId: change.doc.id,
-          };
           if (change.type === "added") {
-            if (
-              newNotification.recipient === credentials.handle &&
-              (newNotification.type === "like" ||
-                newNotification.type === "comment")
-            ) {
+            const newNotification = {
+              ...change.doc.data(),
+              notificationId: change.doc.id,
+            };
+            if (newNotification.recipient === credentials.handle) {
               dispatch(addLikeNotification(newNotification));
             }
           } else if (change.type === "removed") {
@@ -100,8 +106,7 @@ const Scream = ({ scream }) => {
             };
             if (
               notificationToBeRemoved.recipient === credentials.handle &&
-              (notificationToBeRemoved.type === "like" ||
-                notificationToBeRemoved.type === "comment")
+              notificationToBeRemoved.type === "like"
             ) {
               dispatch(deleteNotificationOnUnlike(notificationToBeRemoved));
             }
@@ -110,26 +115,43 @@ const Scream = ({ scream }) => {
       }
     );
 
-    // unsubscribe from scream collection
+    // subscribe to  scream collection
     let screamCountLikeAndCountStarts = true;
     const unsubscribeScream = onSnapshot(
-      collection(db, "screams"),
+      doc(db, "screams", screamId),
       (snapshot) => {
         if (screamCountLikeAndCountStarts) {
           screamCountLikeAndCountStarts = false;
           return;
         }
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === "modified") {
-            const updatedScream = {
-              ...change.doc.data(),
-              screamId: change.doc.id,
-            };
-            if (updatedScream.likeCount !== likeCount) {
-              dispatch(updateLikeCount(updatedScream));
-            }
+
+        if (snapshot.exists()) {
+          const updatedScream = {
+            ...snapshot.data(),
+            screamId: snapshot.id,
+          };
+          if (updatedScream.commentCount !== commentCount) {
+            dispatch(updateCommentCount(updatedScream));
           }
-        });
+          if (updatedScream.likeCount !== likeCount) {
+            dispatch(updateLikeCount(updatedScream));
+          }
+        }
+
+        // snapshot.docChanges().forEach((change) => {
+        //   if (change.type === "modified") {
+        //     const updatedScream = {
+        //       ...change.doc.data(),
+        //       screamId: change.doc.id,
+        //     };
+        //     if (
+        //       updatedScream.likeCount !== likeCount ||
+        //       updatedScream.likeCount === likeCount
+        //     ) {
+        //       dispatch(updateLikeCount(updatedScream));
+        //     }
+        //   }
+        // });
       }
     );
 
@@ -139,74 +161,104 @@ const Scream = ({ scream }) => {
     };
   }, [dispatch]);
 
+  const handleOPenModal = () => {
+    setOpenModal(true);
+    dispatch(fetchScreamDetails(screamId));
+  };
+
   return (
-    <div className="flex flex-col relative bg-bgCard my-4 rounded-md max-sm:w-[29rem] w-[39rem]   shadow-2xl">
-      {/* /// card  header */}
-      <div className="pl-3  flex items-center justify-between py-2">
-        <div className="flex items-center">
-          <img
-            className="w-12 h-12 rounded-full object-cover mr-3.5"
-            src={profileImage}
-            alt="Profile"
-          />
-          <div className="">
-            <h3 className="text-lg leading-3 text-white tracking-tight font-medium">
-              {userHandle}
-            </h3>
-            <span className="text-[13px] text-gray-500 tracking-normal font-bold ">
-              {dayjs(createdAt).fromNow(true)}
-            </span>
+    <>
+      <div className="flex flex-col relative bg-bgCard my-4 rounded-md max-sm:w-[29rem] w-[39rem] shadow-2xl">
+        {/* /// card  header */}
+        <div className="pl-3  flex items-center justify-between py-2">
+          <div className="flex items-center">
+            <img
+              className="w-12 h-12 rounded-full object-cover mr-3.5"
+              src={profileImage}
+              alt="Profile"
+            />
+            <div className="">
+              <h3 className="text-lg leading-3 text-white tracking-tight font-medium">
+                {userHandle}
+              </h3>
+              <span className="text-[13px] text-gray-500 tracking-normal font-bold ">
+                {dayjs(createdAt).fromNow(true)}
+              </span>
+            </div>
+          </div>
+          <button className=" p-[4px] hover:bg-accent mr-4 rounded-full  border-none">
+            <BiDotsHorizontalRounded className="text-[25px] text-gray-400  hover:text-white" />
+          </button>
+        </div>
+        <p
+          className={`text-white pb-1.5 ${
+            screamImage
+              ? "  text-left text-[15px] leading-normal max-w-[39rem] mx-4 tracking-normal  "
+              : " bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 leading-normal tracking-normal  max-w-[41rem]  h-[24rem]  flex items-center justify-center text-[20px]  px-10 "
+          }`}
+        >
+          {description}
+        </p>
+
+        {/* {/* card image */}
+        {screamImage && (
+          <figure className="">
+            <img
+              src={screamImage}
+              className="w-[100%]  object-cover "
+              alt="posted scream image"
+            />
+          </figure>
+        )}
+
+        {/* card footer */}
+        <div className="m-2">
+          {/* Add comment  */}
+
+          <div className="flex justify-end">
+            <button
+              className=" text-gray-300/90 text-right text-sm py-[0.4px] hover:underline hover:cursor-pointer tracking-tight "
+              onClick={handleOPenModal}
+            >
+              {commentCount} comment
+            </button>
+          </div>
+
+          <div className=" w-[100%] h-[0.2px] bg-gray-400/80" />
+          <div className="mt-2 flex items-center justify-between  ">
+            {}
+            <button
+              onClick={handleLikeScream}
+              className=" w-[48%] h-1 mr-2 ml-2  py-[14px]  justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400 font-afacad text-[1.125rem]   "
+            >
+              {likeCount}
+              {toggleLikeBtn}
+            </button>
+            <button
+              className=" w-[48%] h-1 mr-2 ml-2  py-[14px]   justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400  text-[1.125rem]"
+              onClick={handleOPenModal}
+            >
+              {commentCount}
+              <AiOutlineComment className="ml-2 text-gray-300 text-2xl" />
+            </button>
           </div>
         </div>
-        <button className=" p-[4px] hover:bg-accent mr-4 rounded-full  border-none">
-          <BiDotsHorizontalRounded className="text-[25px] text-gray-400  hover:text-white" />
-        </button>
       </div>
-      <p
-        className={`text-white pb-1.5 ${
-          screamImage
-            ? "  text-left text-[15px] leading-normal max-w-[39rem] mx-4 tracking-normal  "
-            : " bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 leading-normal tracking-normal  max-w-[41rem]  h-[24rem]  flex items-center justify-center text-[20px]  px-10 "
-        }`}
-      >
-        {description}
-      </p>
 
-      {/* {/* card image */}
-      {screamImage && (
-        <figure className="">
-          <img
-            src={screamImage}
-            className="w-[100%]  object-cover "
-            alt="posted scream image"
+      {/* Add comment Modal  */}
+
+      {openModal && (
+        <dialog className="modal modal-open ">
+          <AddComment
+            screamId={screamId}
+            scream={scream}
+            openModal={openModal}
+            setOpenModal={setOpenModal}
           />
-        </figure>
+        </dialog>
       )}
-
-      {/* card footer */}
-      <div className="m-2">
-        <p className="text-gray-300/90 text-right text-sm tracking-tight ">
-          1 comment
-        </p>
-        <div className=" w-[100%] h-[0.2px] bg-gray-400/80" />
-        <div className="mt-2 flex items-center justify-between  ">
-          {}
-          <button
-            onClick={handleLikeScream}
-            className=" w-[48%] h-1 mr-2 ml-2  py-[14px]  justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400 font-afacad text-[1.125rem]   "
-          >
-            {likeCount}
-            {toggleLikeBtn}
-            {/* <AiOutlineLike className="ml-2 text-gray-300 text-2xl" /> */}
-          </button>
-          <button className=" w-[48%] h-1 mr-2 ml-2  py-[14px]  justify-center hover:bg-accent rounded-md  flex items-center  text-gray-400  text-[1.125rem]   ">
-            {commentCount}
-            <AiOutlineComment className="ml-2 text-gray-300 text-2xl" />
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 
-export default Scream;
+export default React.memo(Scream);

@@ -35,3 +35,8 @@ body {
   display: inline-flex;
   align-items: center;
 }
+
+.custom-scrollbar {
+  scrollbar-width: none;
+  scrollbar-color: #9ca3af transparent;
+}

@@ -6,6 +6,7 @@ const os = require("os");
 const fs = require("fs");
 const { firebaseConfig } = require("../utils/config");
 
+//  fetch  all  screams
 exports.getAllScreams = async (req, res) => {
   try {
     const screamsSnap = await db.collection("screams").get();
@@ -26,6 +27,8 @@ exports.getAllScreams = async (req, res) => {
     res.status(500).send("Error while fetching screams.");
   }
 };
+
+/////  post one scream
 
 exports.postOneScream = async (req, res) => {
   const newScream = {
@@ -139,6 +142,7 @@ exports.addCommentScream = async (req, res) => {
   }
 };
 
+//      like the scream
 exports.likeScream = async (req, res) => {
   try {
     const likesDetails = {
@@ -173,6 +177,7 @@ exports.likeScream = async (req, res) => {
   }
 };
 
+//  unlike the scream
 exports.unlikeScream = async (req, res) => {
   try {
     const screamDoc = db.doc(`/screams/${req.params.screamId}`);
@@ -209,6 +214,8 @@ exports.unlikeScream = async (req, res) => {
     res.status(500).json({ error: "Error while unlike the scream." });
   }
 };
+
+//  delete scream
 
 exports.deleteScream = async (req, res) => {
   try {
@@ -252,5 +259,38 @@ exports.deleteScream = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error while deleting scream." });
+  }
+};
+
+///  fetch one scream
+
+exports.getOneScreamDetail = async (req, res) => {
+  try {
+    let screamDetails = {};
+    const screamDoc = (
+      await db.doc(`/screams/${req.params.screamId}`).get()
+    ).data();
+    screamDetails.scream = {
+      ...screamDoc,
+      screamId: req.params.screamId,
+    };
+    const commentsSnap = await db
+      .collection("comments")
+      .where("screamId", "==", req.params.screamId)
+      .orderBy("createdAt", "asc")
+      .get();
+    screamDetails.comments = [];
+    if (!commentsSnap.empty) {
+      commentsSnap.forEach((doc) => {
+        screamDetails.comments.push({
+          ...doc.data(),
+          commentId: doc.id,
+        });
+      });
+    }
+    return res.status(200).json(screamDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error while fetching scream." });
   }
 };

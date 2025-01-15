@@ -10,12 +10,16 @@ const initialState = {
     signin: false,
     app: false,
     post: false,
+    onePost: false,
+    addComment: false,
   },
 
   screams: [],
   notifications: [],
   messageNotifications: [],
   likes: [],
+  comments: [],
+  scream: {},
   errors: {},
 };
 
@@ -131,6 +135,38 @@ export const unlikeScream = createAsyncThunk(
     }
   }
 );
+
+//  fetch  one scream  details
+
+export const fetchScreamDetails = createAsyncThunk(
+  "/scream",
+  async (screamId) => {
+    try {
+      const res = await axios.get(`/api/scream/${screamId}`);
+
+      return res.data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
+
+//   add comment
+export const commentOnScream = createAsyncThunk(
+  "scream/addComment",
+  async ({ screamId, commentText }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(`/api/scream/${screamId}/comment`, {
+        commentText,
+      });
+
+      return res.data;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -146,21 +182,46 @@ const userSlice = createSlice({
     },
     ///  update the like count in real time
     updateLikeCount: (state, action) => {
-      console.log(action.payload);
-
+      state.screams = state.screams.map((scream) => {
+        return scream.screamId === action.payload.screamId
+          ? { ...scream, likeCount: action.payload.likeCount }
+          : scream;
+      });
+      state.scream = state.scream.screamId === action.payload.screamId && {
+        ...state.scream,
+        likeCount: action.payload.likeCount,
+      };
+    },
+    // update the comment count in  real time
+    updateCommentCount: (state, action) => {
       state.screams = state.screams.map((scream) =>
         scream.screamId === action.payload.screamId
-          ? { ...scream, likeCount: action.payload.likeCount }
+          ? { ...scream, commentCount: action.payload.commentCount }
           : scream
       );
+      state.scream = state.scream.screamId === action.payload.screamId && {
+        ...state.scream,
+        commentCount: action.payload.commentCount,
+      };
+    },
+    // update the scream comments array on adding the comment
+    updateComments: (state, action) => {
+      if (
+        !state.comments.some(
+          (comment) => comment.commentId === action.payload.commentId
+        )
+      ) {
+        state.comments.push(action.payload);
+      }
     },
     // real time notification  on like
     addLikeNotification: (state, action) => {
       if (
         !state.notifications.some(
           (notification) =>
-            notification.screamId === action.payload.screamId &&
-            notification.sender == action.payload.sender
+            notification.notificationId === action.payload.notificationId &&
+            notification.sender === action.payload.sender &&
+            (notification.type === "like" || notification.type === "comment")
         )
       ) {
         state.notifications.unshift(action.payload);
@@ -257,6 +318,10 @@ const userSlice = createSlice({
             : scream
         );
         state.likes.unshift(action.payload);
+        state.scream =
+          state.scream.screamId === action.payload.screamId
+            ? { ...state.scream, likeCount: action.payload.likeCount }
+            : state.scream;
       })
       ///  unlike scream
       .addCase(unlikeScream.fulfilled, (state, action) => {
@@ -271,6 +336,44 @@ const userSlice = createSlice({
         state.likes = state.likes.filter(
           (like) => like.screamId !== action.payload.screamId
         );
+        state.scream =
+          state.scream.screamId === action.payload.screamId
+            ? { ...state.scream, likeCount: action.payload.likeCount }
+            : state.scream;
+      })
+      // fetch  one scream  details
+      .addCase(fetchScreamDetails.pending, (state) => {
+        state.loading.onePost = true;
+      })
+      .addCase(fetchScreamDetails.fulfilled, (state, action) => {
+        state.loading.onePost = false;
+        state.scream = action.payload.scream;
+        state.comments = action.payload.comments;
+      })
+      .addCase(fetchScreamDetails.rejected, (state, action) => {
+        state.loading.onePost = false;
+      })
+
+      ///  add comment on scream
+      .addCase(commentOnScream.pending, (state) => {
+        state.loading.comment = true;
+      })
+      .addCase(commentOnScream.fulfilled, (state, action) => {
+        state.loading.addComment = false;
+        state.comments.push(action.payload);
+        state.scream = state.scream.screamId === action.payload.screamId && {
+          ...state.scream,
+          commentCount: action.payload.commentCount,
+        };
+
+        state.screams = state.screams.map((scream) =>
+          scream.screamId === action.payload.screamId
+            ? { ...scream, commentCount: action.payload.commentCount }
+            : scream
+        );
+      })
+      .addCase(commentOnScream.rejected, (state, action) => {
+        state.loading.comment = false;
       });
   },
 });
@@ -280,6 +383,8 @@ export const {
   addLikeNotification,
   deleteNotificationOnUnlike,
   updateLikeCount,
+  updateCommentCount,
+  updateComments,
 } = userSlice.actions;
 
 export default userSlice.reducer;

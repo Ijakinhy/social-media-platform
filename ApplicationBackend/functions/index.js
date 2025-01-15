@@ -8,6 +8,7 @@ const {
   likeScream,
   unlikeScream,
   deleteScream,
+  getOneScreamDetail,
 } = require("./handlers/screams");
 const {
   signUpUser,
@@ -37,6 +38,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 const app = express();
 
 app.get("/screams", getAllScreams); /// get all  screams
+app.get("/scream/:screamId", authMiddleware, getOneScreamDetail);
 app.post("/scream", authMiddleware, postOneScream); //  add one scream
 app.post("/signUp", signUpUser); ///  sign up
 app.post("/signIn", signInUser); ///  sign in
@@ -46,6 +48,7 @@ app.get("/scream/:screamId/like", authMiddleware, likeScream); /// like   a  scr
 app.get("/scream/:screamId/unlike", authMiddleware, unlikeScream); /// unlike   a  scream
 app.delete("/scream/:screamId", authMiddleware, deleteScream); // delete scream
 app.post("/user", authMiddleware, addUserDetails); ///  add user details
+
 app.get("/user/:handle", authMiddleware, getUserDetails); ///  get user details
 app.get("/user", authMiddleware, getAuthenticatedUsed); ///  get authenticated user
 app.post("/user/image", authMiddleware, uploadProfilePic); ////  edit or or add profile details

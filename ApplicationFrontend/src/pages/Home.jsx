@@ -5,7 +5,7 @@ import {
   orderBy,
   query,
 } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CreateScream from "../components/CreateScream";
 import Navbar from "../components/Navbar";
@@ -19,27 +19,22 @@ import {
   updateLikeCount,
 } from "../redux/userSlice";
 const Home = () => {
-  const [triggerScreamSnap, setTriggerScreamSnap] = useState(false);
-
   const dispatch = useDispatch();
-  const {
-    loading: { app },
-    screams,
-    credentials,
-  } = useSelector((state) => state.user);
+  const app = useSelector((state) => state.user.loading.app);
+  const screams = useSelector((state) => state.user.screams);
+  const credentials = useSelector((state) => state.user.credentials);
+
+  const memoiseScreams = useMemo(() => screams, [screams]);
 
   useEffect(() => {
     dispatch(getAuthenticatedUser());
-  }, []);
+  }, [dispatch]);
 
-  /// event listener for created scream
+  // / event listener for created scream
   useEffect(() => {
     let IsInitialSnap = true;
-    let isInitialSnapNotifications = true;
-    let isInitialSnapLikeAndUnlike = true;
 
     const screamCollection = collection(db, "screams");
-    const notificationCollection = collection(db, "notifications");
     const screamsColQuery = query(
       screamCollection,
       orderBy("createdAt", "desc")
@@ -53,8 +48,9 @@ const Home = () => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const newScream = { ...change.doc.data(), screamId: change.doc.id };
-
-          dispatch(addNewScream(newScream));
+          if (newScream.userHandle !== credentials.handle) {
+            dispatch(addNewScream(newScream));
+          }
         }
       });
     });
@@ -78,9 +74,7 @@ const Home = () => {
         </div>
       ) : (
         <div className="h-full">
-          <div className="sticky top-0 z-[1000]">
-            <Navbar />
-          </div>
+          <div className="sticky top-0 z-[90]">{<Navbar />}</div>
 
           <div className=" flex   justify-center z-0">
             {/* /// profile  */}
@@ -89,7 +83,7 @@ const Home = () => {
               {/* ///  create card  post  */}
               <CreateScream />
               {/* ///  scream  Card */}
-              {screams.map((scream) => (
+              {memoiseScreams.map((scream) => (
                 <Scream key={scream.screamId} scream={scream} />
               ))}
             </div>

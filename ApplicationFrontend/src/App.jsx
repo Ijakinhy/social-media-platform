@@ -10,12 +10,7 @@ import PrivateRouter from "./utils/PrivateRouter";
 import { jwtDecode } from "jwt-decode";
 
 export default function App() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (localStorage.token) {
-      navigate("/");
-    }
-  }, [localStorage.token]);
+  const dispatch = useDispatch();
 
   return (
     <>
