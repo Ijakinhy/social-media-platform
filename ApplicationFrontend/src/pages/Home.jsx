@@ -12,12 +12,9 @@ import Navbar from "../components/Navbar";
 import Profile from "../components/Profile";
 import Scream from "../components/Scream";
 import { db } from "../firebase";
-import {
-  addLikeNotification,
-  addNewScream,
-  getAuthenticatedUser,
-  updateLikeCount,
-} from "../redux/userSlice";
+import { getAuthenticatedUser } from "../redux/userActions";
+import { addNewScream } from "../redux/userSlice";
+
 const Home = () => {
   const dispatch = useDispatch();
   const app = useSelector((state) => state.user.loading.app);

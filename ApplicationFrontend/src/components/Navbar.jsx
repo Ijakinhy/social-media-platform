@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { FaHome } from "react-icons/fa";
+import { FaFacebookMessenger } from "react-icons/fa6";
+import { RiArrowDropDownLine } from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import logo from "../images/logo.jpg";
-import { FaHome, FaSearch } from "react-icons/fa";
-import { useDispatch, useSelector } from "react-redux";
-import { MdOutlineLogout } from "react-icons/md";
 import logoutIcon from "../images/logOutIcon.png";
-import { IoIosNotifications } from "react-icons/io";
-import { FaFacebookMessenger } from "react-icons/fa6";
-import { FiPlus } from "react-icons/fi";
+import { readNotifications } from "../redux/userActions";
 import NotIcon from "../utils/NotIcon";
-import { RiArrowDropDownLine } from "react-icons/ri";
 import Notification from "./Notification";
-import { readNotifications } from "../redux/userSlice";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [alreadyNotRead, setAlreadyNotRead] = useState(false);

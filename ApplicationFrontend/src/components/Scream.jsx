@@ -6,21 +6,22 @@ import { AiOutlineComment, AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { BiDotsHorizontalRounded } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addLikeNotification,
-  deleteNotificationOnUnlike,
   fetchScreamDetails,
   likeScream,
   unlikeScream,
-  updateCommentCount,
-  updateLikeCount,
-} from "../redux/userSlice";
+} from "../redux/userActions";
 import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import AddComment from "./AddComment";
+import {
+  addLikeNotification,
+  deleteNotificationOnUnlike,
+  updateCommentCount,
+  updateLikeCount,
+} from "../redux/userSlice";
 
 const Scream = ({ scream }) => {
   const dispatch = useDispatch();
-  const [triggerRender, setTriggerRender] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
   const { likes, credentials } = useSelector((state) => state.user);
@@ -137,21 +138,6 @@ const Scream = ({ scream }) => {
             dispatch(updateLikeCount(updatedScream));
           }
         }
-
-        // snapshot.docChanges().forEach((change) => {
-        //   if (change.type === "modified") {
-        //     const updatedScream = {
-        //       ...change.doc.data(),
-        //       screamId: change.doc.id,
-        //     };
-        //     if (
-        //       updatedScream.likeCount !== likeCount ||
-        //       updatedScream.likeCount === likeCount
-        //     ) {
-        //       dispatch(updateLikeCount(updatedScream));
-        //     }
-        //   }
-        // });
       }
     );
 

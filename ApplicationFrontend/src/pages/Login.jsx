@@ -3,7 +3,7 @@ import logo from "../images/logo.jpg";
 import { PiInfoFill } from "react-icons/pi";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { signInUser } from "../redux/userSlice";
+import { signInUser } from "../redux/userActions";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const {

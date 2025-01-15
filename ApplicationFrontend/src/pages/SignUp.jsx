@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import logo from "../images/logo.jpg";
 import { useDispatch, useSelector } from "react-redux";
-import { signupUser } from "../redux/userSlice";
 import { Link, useNavigate } from "react-router-dom";
+import { signupUser } from "../redux/userActions";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -19,10 +19,9 @@ const SignUp = () => {
   const dispatch = useDispatch();
 
   const handleSignup = (e) => {
-    console.log(formData);
     e.preventDefault();
-    // dispatch(signupUser({ formData, navigate }));
-    // setFormData({ handle: "", email: "", password: "" });
+    dispatch(signupUser({ formData, navigate }));
+    setFormData({ handle: "", email: "", password: "" });
   };
 
   return (

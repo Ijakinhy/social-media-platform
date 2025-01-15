@@ -5,7 +5,6 @@ const busboy = require("busboy");
 const os = require("os");
 const fs = require("fs");
 const path = require("path");
-const { transcode } = require("buffer");
 const { FieldValue } = require("firebase-admin/firestore");
 
 exports.signUpUser = async (req, res) => {

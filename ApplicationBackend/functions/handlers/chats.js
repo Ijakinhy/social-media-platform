@@ -1,7 +1,4 @@
-const { FieldValue } = require("firebase-admin/firestore");
-const { db, admin } = require("../utils/admin");
-const functions = require("firebase-functions");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { db } = require("../utils/admin");
 exports.createChat = async (req, res) => {
   try {
     await db.doc(`/chats/${req.user.handle}`).set({ messages: [] });

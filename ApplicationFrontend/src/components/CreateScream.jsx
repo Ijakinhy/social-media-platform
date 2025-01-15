@@ -4,14 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import cameraIcon from "../images/cameraIcon.png";
 import emojiIcon from "../images/emojiIcon.png";
 import imageIcon from "../images/imageIcon.png";
-import { createPost } from "../redux/userSlice";
+import { createPost } from "../redux/userActions";
 const CreateScream = () => {
   const [text, setText] = useState("");
   const [image, setImage] = useState(null);
   const {
-    loading: { app, post },
+    loading: { post },
     credentials,
-    screams,
   } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const handleChangeImage = (e) => {

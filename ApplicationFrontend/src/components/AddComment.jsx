@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
@@ -14,12 +14,9 @@ import {
 import bac2 from "../images/bac2.jpg";
 import {
   commentOnScream,
-  fetchScreamDetails,
   likeScream,
   unlikeScream,
-  updateCommentCount,
-  updateComments,
-} from "../redux/userSlice";
+} from "../redux/userActions";
 import {
   collection,
   doc,
@@ -29,6 +26,7 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { updateComments } from "../redux/userSlice";
 
 const AddComment = ({ openModal, setOpenModal }) => {
   const {

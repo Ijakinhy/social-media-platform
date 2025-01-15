@@ -1,5 +1,4 @@
 const { db, admin } = require("../utils/admin");
-const { uploadImage } = require("../utils/upload");
 const busboy = require("busboy");
 const path = require("path");
 const os = require("os");
