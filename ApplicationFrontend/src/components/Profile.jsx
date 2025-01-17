@@ -4,26 +4,43 @@ import { FaLocationDot } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import phoneIcon from "../images/phoneIcon.png";
 import emailIcon from "../images/emailIcon.png";
-const Profile = () => {
-  const {
-    loading: { app },
-    credentials,
-    screams,
-  } = useSelector((state) => state.user);
+import { Link } from "react-router-dom";
+const Profile = ({ credentials, authenticated }) => {
   return (
     <div className="bg-bgCard w-[25%] mt-4 max-sm:hidden max-[746px]:hidden   mr-8 h-full">
-      <div className="w-full relative glass h-24">
-        <img
-          className="absolute left-1/2 top-20 w-28 h-28 rounded-full transform -translate-x-1/2 -translate-y-1/2 object-cover"
-          src={credentials?.profileImage}
-          alt="Profile"
-        />
-      </div>
+      {authenticated ? (
+        <Link to={`/user/${credentials?.handle}`}>
+          <div className="w-full relative glass h-24">
+            <img
+              className="absolute left-1/2 top-20 w-28 h-28 rounded-full transform -translate-x-1/2 -translate-y-1/2 object-cover"
+              src={credentials?.profileImage}
+              alt="Profile"
+            />
+          </div>
+        </Link>
+      ) : (
+        <div className="w-full relative glass h-24">
+          <img
+            className="absolute left-1/2 top-20 w-28 h-28 rounded-full transform -translate-x-1/2 -translate-y-1/2 object-cover"
+            src={credentials?.profileImage}
+            alt="Profile"
+          />
+        </div>
+      )}
 
       <div className=" mt-11 p-2 ">
-        <h2 className="text-center  mr-auto ml-auto hover:underline cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
-          havyarimana jakin israel{" "}
-        </h2>
+        {authenticated ? (
+          <Link to={`/user/${credentials?.handle}`}>
+            <h2 className="text-center  mr-auto ml-auto hover:underline cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
+              {credentials?.handle}
+            </h2>
+          </Link>
+        ) : (
+          <h2 className="text-center  mr-auto ml-auto cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
+            {credentials.handle}
+          </h2>
+        )}
+
         {credentials?.bio && (
           <p className=" mt-0 text-sm  text-gray-400/75 text-center ml-auto mr-auto ">
             {credentials?.bio}
@@ -74,6 +91,14 @@ const Profile = () => {
           </p>
         </div>
       </div>
+
+      {authenticated && (
+        <div className="mx-5 my-7">
+          <button className="w-full py-3 rounded-lg text-gray-200  font-bold hover:bg-sky-800 bg-sky-900  glass border-none">
+            Edit Details
+          </button>
+        </div>
+      )}
     </div>
   );
 };

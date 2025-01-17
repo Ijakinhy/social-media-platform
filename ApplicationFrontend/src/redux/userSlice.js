@@ -6,6 +6,7 @@ import {
   commentOnScream,
   createPost,
   fetchScreamDetails,
+  fetchUserDetails,
   getAuthenticatedUser,
   likeScream,
   readNotifications,
@@ -23,6 +24,7 @@ const initialState = {
     post: false,
     onePost: false,
     addComment: false,
+    userData: false,
   },
 
   screams: [],
@@ -31,6 +33,7 @@ const initialState = {
   likes: [],
   comments: [],
   scream: {},
+  userData: {},
   errors: {},
 };
 
@@ -243,6 +246,16 @@ const userSlice = createSlice({
       })
       .addCase(commentOnScream.rejected, (state, action) => {
         state.loading.comment = false;
+      })
+      .addCase(fetchUserDetails.pending, (state) => {
+        state.loading.userData = true;
+      })
+      .addCase(fetchUserDetails.fulfilled, (state, action) => {
+        state.loading.userData = false;
+        state.userData = action.payload;
+      })
+      .addCase(fetchUserDetails.rejected, (state, action) => {
+        state.loading.userData = false;
       });
   },
 });

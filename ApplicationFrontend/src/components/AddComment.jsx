@@ -11,7 +11,7 @@ import {
   AiOutlineLike,
   AiOutlineSend,
 } from "react-icons/ai";
-import bac2 from "../images/bac2.jpg";
+
 import {
   commentOnScream,
   likeScream,

@@ -19,6 +19,7 @@ import {
   updateCommentCount,
   updateLikeCount,
 } from "../redux/userSlice";
+import { Link } from "react-router-dom";
 
 const Scream = ({ scream }) => {
   const dispatch = useDispatch();
@@ -158,15 +159,19 @@ const Scream = ({ scream }) => {
         {/* /// card  header */}
         <div className="pl-3  flex items-center justify-between py-2">
           <div className="flex items-center">
-            <img
-              className="w-12 h-12 rounded-full object-cover mr-3.5"
-              src={profileImage}
-              alt="Profile"
-            />
+            <Link to={`/${userHandle}`}>
+              <img
+                className="w-12 h-12 rounded-full object-cover mr-3.5"
+                src={profileImage}
+                alt="Profile"
+              />
+            </Link>
             <div className="">
-              <h3 className="text-lg leading-3 text-white tracking-tight font-medium">
-                {userHandle}
-              </h3>
+              <Link to={`/${userHandle}`}>
+                <h3 className="text-lg leading-3 text-white tracking-tight font-medium">
+                  {userHandle}
+                </h3>
+              </Link>
               <span className="text-[13px] text-gray-500 tracking-normal font-bold ">
                 {dayjs(createdAt).fromNow(true)}
               </span>
@@ -191,7 +196,8 @@ const Scream = ({ scream }) => {
           <figure className="">
             <img
               src={screamImage}
-              className="w-[100%]  object-cover "
+              onClick={handleOPenModal}
+              className="w-[100%]  object-cover  cursor-pointer"
               alt="posted scream image"
             />
           </figure>

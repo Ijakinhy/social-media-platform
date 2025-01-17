@@ -103,7 +103,6 @@ exports.getUserData = async (req, res) => {
     if (userSnap.exists) {
       userData.user = userSnap.data();
     }
-    console.log({ handle });
 
     const screamsSnap = await db
       .collection("screams")
@@ -117,7 +116,7 @@ exports.getUserData = async (req, res) => {
         ...doc.data(),
       });
     });
-    return res.status(201).json({ userData });
+    return res.status(201).json(userData);
   } catch (error) {
     console.log(error);
     res.status(500).json({ general: "error happen while fetching data" });

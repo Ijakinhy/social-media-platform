@@ -144,3 +144,14 @@ export const commentOnScream = createAsyncThunk(
     }
   }
 );
+
+///  fetch details based on the handle
+
+export const fetchUserDetails = createAsyncThunk(
+  "user/details",
+  async (handle) => {
+    const res = await axios.get(`/api/user/${handle}`);
+
+    return res.data;
+  }
+);

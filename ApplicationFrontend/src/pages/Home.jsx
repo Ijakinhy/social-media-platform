@@ -71,11 +71,9 @@ const Home = () => {
         </div>
       ) : (
         <div className="h-full">
-          <div className="sticky top-0 z-[90]">{<Navbar />}</div>
-
           <div className=" flex   justify-center z-0">
             {/* /// profile  */}
-            <Profile />
+            <Profile credentials={credentials} />
             <div className="">
               {/* ///  create card  post  */}
               <CreateScream />
