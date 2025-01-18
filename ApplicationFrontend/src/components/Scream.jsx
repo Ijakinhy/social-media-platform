@@ -155,7 +155,7 @@ const Scream = ({ scream }) => {
 
   return (
     <>
-      <div className="flex flex-col relative bg-bgCard my-4 rounded-md max-sm:w-[29rem] w-[39rem] shadow-2xl">
+      <div className="flex flex-col relative bg-bgCard my-4 rounded-md xs:w-full xs:mx-auto sm:w-[29rem] w-[39rem] shadow-2xl">
         {/* /// card  header */}
         <div className="pl-3  flex items-center justify-between py-2">
           <div className="flex items-center">

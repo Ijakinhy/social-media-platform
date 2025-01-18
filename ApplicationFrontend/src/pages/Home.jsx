@@ -14,12 +14,14 @@ import Scream from "../components/Scream";
 import { db } from "../firebase";
 import { getAuthenticatedUser } from "../redux/userActions";
 import { addNewScream } from "../redux/userSlice";
+import Notification from "../components/Notification";
 
 const Home = () => {
   const dispatch = useDispatch();
   const app = useSelector((state) => state.user.loading.app);
   const screams = useSelector((state) => state.user.screams);
   const credentials = useSelector((state) => state.user.credentials);
+  const notifications = useSelector((state) => state.user.notifications);
 
   const memoiseScreams = useMemo(() => screams, [screams]);
 
@@ -71,9 +73,9 @@ const Home = () => {
         </div>
       ) : (
         <div className="h-full">
-          <div className=" flex   justify-center z-0">
+          <div className=" relative flex sm:justify-evenly justify-center  ">
             {/* /// profile  */}
-            <Profile credentials={credentials} />
+            <Profile credentials={credentials} page={"home"} />
             <div className="">
               {/* ///  create card  post  */}
               <CreateScream />

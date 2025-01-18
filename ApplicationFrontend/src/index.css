@@ -40,3 +40,6 @@ body {
   scrollbar-width: none;
   scrollbar-color: #9ca3af transparent;
 }
+.firebase-emulator-warning {
+  display: none !important;
+}

@@ -11,10 +11,12 @@ exports.signUpUser = async (req, res) => {
   try {
     const newUser = {
       handle: req.body.handle,
+      lastName: req.body.lastName,
       email: req.body.email,
       profileImage:
         "http://127.0.0.1:9199/v0/b/social-platform-ijakinhy.firebasestorage.app/o/default.jpg?alt=media",
       password: req.body.password,
+      telephoneNumber: req.body.telephoneNumber,
     };
     let errors = {};
     if (!newUser.handle) {
@@ -32,6 +34,15 @@ exports.signUpUser = async (req, res) => {
     } else if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(newUser.email)) {
       errors.email = "Must be a valid email address";
     }
+    if (!newUser.lastName) {
+      errors.lastName = "Must not be empty";
+    }
+    if (!newUser.telephoneNumber) {
+      errors.telephoneNumber = "Must not be empty";
+    }
+    //  else if (!/^\d{10}$/.test(newUser.telephoneNumber)) {
+    //   errors.telephoneNumber = "Must be a valid 10-digit phone number";
+    // }
 
     if (Object.keys(errors).length > 0) {
       return res.status(400).json(errors);
@@ -53,6 +64,9 @@ exports.signUpUser = async (req, res) => {
         handle: newUser.handle,
         userId: response.data.localId,
         profileImage: newUser.profileImage,
+        lastName: newUser.lastName,
+        telephoneNumber: newUser.telephoneNumber,
+        joinedAt: new Date().toISOString(),
       });
       return res.status(201).json({
         email: newUser.email,

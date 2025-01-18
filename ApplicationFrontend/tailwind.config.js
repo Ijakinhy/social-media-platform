@@ -17,6 +17,13 @@ export default {
         roboto: ["Roboto", "sans-serif", "Afacad Flux"],
         afacad: ['"Afacad Flux"', "sans-serif"],
       },
+      screens: {
+        xs: { max: "599px" },
+        sm: { max: "899px" },
+        md: { max: "1199px" },
+        lg: { max: "1535px" },
+        xl: { max: "1920px" },
+      },
     },
   },
   plugins: [require("daisyui")],

@@ -10,7 +10,7 @@ import { readNotifications } from "../redux/userActions";
 import NotIcon from "../utils/NotIcon";
 import Notification from "./Notification";
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [alreadyNotRead, setAlreadyNotRead] = useState(false);
   const { credentials, notifications } = useSelector((state) => state.user);
 
@@ -36,21 +36,21 @@ const Navbar = () => {
 
   return (
     <>
-      <div className=" bg-bgCard   ">
-        <div className="navbar  items-center justify-evenly max-sm:justify-between   ">
+      <div className=" bg-bgCard">
+        <div className="navbar  items-center justify-evenly  sm:justify-between   ">
           <div className="">
             <Link className=" flex items-center  text-xl leading-none">
               <img
                 src={logo}
-                className="w-12 mr-2 max-sm:mr-0 rounded-full"
+                className="w-12 mr-2 sm:mr-0 rounded-full"
                 alt="logo"
               />
-              <h2 className="text-white font-bold tracking-tighter text-2xl leading-none max-sm:hidden ">
+              <h2 className="text-white font-bold tracking-tighter text-2xl leading-none sm:hidden ">
                 Ijakinhy
               </h2>
             </Link>
           </div>
-          <div className="flex items-center pr-28 max-sm:pr-0  justify-center relative   ">
+          <div className="flex items-center pr-28 sm:pr-0  justify-center relative   ">
             <button className="w-10 h-10 rounded-full pt-1.5   bg-gray-100/20 border-none  ">
               <Link to="/" className="indicator">
                 <FaHome className="text-xl  hover:text-white text-gray-300 " />
@@ -59,7 +59,7 @@ const Navbar = () => {
 
             {/* /// chats */}
 
-            <button className="w-10 h-10 rounded-full  pt-1.5   mr-8 max-sm:mx-8  ml-8    bg-gray-100/20 border-none  ">
+            <button className="w-10 h-10 rounded-full  pt-1.5   mr-8 sm:mx-8  ml-8    bg-gray-100/20 border-none  ">
               <div className="indicator">
                 <FaFacebookMessenger className="text-xl  hover:text-white text-gray-300  " />
                 <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
@@ -68,7 +68,7 @@ const Navbar = () => {
               </div>
             </button>
             {/* notification */}
-            <div className="dropdown max-sm:dropdown-end ">
+            <div className="dropdown sm:dropdown-end ">
               <button
                 className="  w-10 h-10 py-auto mr-4 pt-1.5  b rounded-full bg-gray-100/5 border-none "
                 onClick={handleReadNotification}
@@ -82,8 +82,8 @@ const Navbar = () => {
                 </div>
               </button>
 
-              {isOpen && (
-                <div className="menu dropdown-content bg-bgCard2   z-[10]  w-[18rem] p-2 shadow">
+              {/* {isOpen && (
+                <details className="menu dropdown-content overflow-y-scroll  bg-bgCard2   z-[10]  w-[18rem] p-2 shadow">
                   {!!notifications.length ? (
                     <Notification />
                   ) : (
@@ -91,8 +91,8 @@ const Navbar = () => {
                       You've not notification
                     </h2>
                   )}
-                </div>
-              )}
+                </details>
+              )} */}
             </div>
           </div>
 
@@ -128,10 +128,12 @@ const Navbar = () => {
                   </div>
 
                   <div className="text-left ml-2 ">
-                    <h3 className="text-gray-200 capitalize text-sm leading-none ">
-                      View profile
-                    </h3>
-                    <p className="text-sky-200/80">{credentials?.handle}</p>
+                    <Link to={`/user/${credentials.handle}`}>
+                      <h3 className="text-gray-200 capitalize text-sm leading-none ">
+                        View profile
+                      </h3>
+                      <p className="text-sky-200/80">{credentials?.handle}</p>
+                    </Link>
                   </div>
                 </div>
 

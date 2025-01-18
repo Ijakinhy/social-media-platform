@@ -6,6 +6,8 @@ export const signupUser = createAsyncThunk(
   "/user/signUp",
   async ({ formData, navigate }, { rejectWithValue, dispatch }) => {
     try {
+      console.log(formData);
+
       const res = await axios.post("/api/signUp", formData);
       const token = res.data.token;
       setDefaultToken({ token });

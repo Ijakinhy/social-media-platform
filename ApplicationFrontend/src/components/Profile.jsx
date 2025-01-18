@@ -5,10 +5,10 @@ import { useSelector } from "react-redux";
 import phoneIcon from "../images/phoneIcon.png";
 import emailIcon from "../images/emailIcon.png";
 import { Link } from "react-router-dom";
-const Profile = ({ credentials, authenticated }) => {
+const Profile = ({ credentials, page }) => {
   return (
-    <div className="bg-bgCard w-[25%] mt-4 max-sm:hidden max-[746px]:hidden   mr-8 h-full">
-      {authenticated ? (
+    <div className="bg-bgCard w-[24rem] mt-4 xs:hidden  sm:w-[20rem] max-[621px]:hidden sm:mx-2  mr-8 h-full">
+      {page === "home" ? (
         <Link to={`/user/${credentials?.handle}`}>
           <div className="w-full relative glass h-24">
             <img
@@ -29,15 +29,15 @@ const Profile = ({ credentials, authenticated }) => {
       )}
 
       <div className=" mt-11 p-2 ">
-        {authenticated ? (
+        {page === "home" ? (
           <Link to={`/user/${credentials?.handle}`}>
             <h2 className="text-center  mr-auto ml-auto hover:underline cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
-              {credentials?.handle}
+              {`${credentials.handle} ${credentials.lastName}`}
             </h2>
           </Link>
         ) : (
           <h2 className="text-center  mr-auto ml-auto cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
-            {credentials.handle}
+            {`${credentials.handle} ${credentials.lastName}`}
           </h2>
         )}
 
@@ -69,7 +69,7 @@ const Profile = ({ credentials, authenticated }) => {
         <div className="flex items-center mt-4">
           <img src={phoneIcon} className="ml-2" alt="phone number icon" />
           <p className="ml-5 text-gray-200 text-left tracking-wide leading-[1]">
-            +{credentials?.telephoneNumber}
+            +25{credentials?.telephoneNumber}
             <br />
             <small className=" text-gray-400/65  text-xs leading-none ml-1">
               Mobile
@@ -92,7 +92,7 @@ const Profile = ({ credentials, authenticated }) => {
         </div>
       </div>
 
-      {authenticated && (
+      {page === "userProfilePage" && (
         <div className="mx-5 my-7">
           <button className="w-full py-3 rounded-lg text-gray-200  font-bold hover:bg-sky-800 bg-sky-900  glass border-none">
             Edit Details

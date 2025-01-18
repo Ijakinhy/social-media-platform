@@ -14,8 +14,6 @@ const AuthenticatedUser = () => {
     [userData.screams]
   );
 
-  console.log(memoiseUserScreams);
-
   useEffect(() => {
     dispatch(fetchUserDetails(handle));
   }, [handle]);
@@ -36,7 +34,7 @@ const AuthenticatedUser = () => {
           <div className="h-full">
             <div className=" flex   justify-center z-0">
               {/* /// profile  */}
-              <Profile credentials={userData.user} authenticated={false} />
+              <Profile credentials={userData.user} page={"userProfilePage"} />
               <div className="">
                 {/* ///  scream  Card */}
                 {userData.screams.map((scream) => (

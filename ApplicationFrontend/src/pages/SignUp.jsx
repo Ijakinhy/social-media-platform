@@ -5,11 +5,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { signupUser } from "../redux/userActions";
 
 const SignUp = () => {
-  const [formData, setFormData] = useState({
-    handle: "",
-    email: "",
-    password: "",
-  });
+  // const [formData, setFormData] = useState({
+  //   handle: "",
+  //   email: "",
+  //   password: "",
+  //   confirmPassword: "",
+  //   firstName: "",
+  // });
   const navigate = useNavigate();
 
   const {
@@ -20,53 +22,69 @@ const SignUp = () => {
 
   const handleSignup = (e) => {
     e.preventDefault();
+    const Form = new FormData(e.target);
+    const formData = Object.fromEntries(Form.entries());
+
     dispatch(signupUser({ formData, navigate }));
-    setFormData({ handle: "", email: "", password: "" });
+    // setFormData({ handle: "", email: "", password: "" });
   };
 
   return (
-    <div className="bg-slate-100 min-h-screen pb-9 pt-8">
+    <div className="bg-slate-200 min-h-screen pb-9 pt-8">
       <img
         className="max-w-32 rounded-full ml-auto  mr-auto "
         src={logo}
         alt="logo"
       />
-      <div className="bg-white mt-10  shadow-2xl rounded-lg ml-auto mr-auto w-96 p-8 ">
+      <div className="bg-[#ffffff] mt-10  shadow-2xl rounded-lg ml-auto mr-auto w-[28rem] px-5  py-8  xs:w-96 ">
         <h2 className="text-center pb-4 text-sky-900   text-3xl font-medium capitalize">
           create new account
         </h2>
 
         <form
           action=""
-          className="flex flex-col  items-center mt-auto mb-auto"
+          className="flex flex-col w-full items-center "
           onSubmit={handleSignup}
         >
+          <div className="flex items-center  w-full max-w-md">
+            <input
+              autoComplete="off"
+              type="text"
+              name="lastName"
+              placeholder="first name "
+              className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   mr-3  w-full max-w-md"
+            />
+            <input
+              autoComplete="off"
+              name="handle"
+              type="text"
+              placeholder="last name "
+              className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
+            />
+          </div>
+
           <input
-            type="text"
-            placeholder="Username"
-            value={formData.handle}
-            onChange={(e) =>
-              setFormData({ ...formData, handle: e.target.value })
-            }
-            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none  w-full max-w-xs"
+            autoComplete="off"
+            type="tel"
+            name="telephoneNumber"
+            placeholder="telephone number"
+            pattern="^\+?[1-9]\d{1,14}$"
+            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
           />
           <input
+            autoComplete="off"
+            name="email"
             type="email"
             placeholder="Email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none  w-full max-w-xs"
+            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
           />
+
           <input
+            name="password"
             type="password"
             placeholder="Password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-            className="p-2 border text-sm rounded-md input-bordered my-2 focus:border-none  w-full max-w-xs"
+            autoComplete="new-password"
+            className="p-2 border text-sm rounded-md input-bordered my-2 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
           />
           <button
             type="submit"
