@@ -9,6 +9,7 @@ import logoutIcon from "../images/logOutIcon.png";
 import { readNotifications } from "../redux/userActions";
 import NotIcon from "../utils/NotIcon";
 import Notification from "./Notification";
+import { toggleNotificationModal } from "../redux/userSlice";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [alreadyNotRead, setAlreadyNotRead] = useState(false);
@@ -24,7 +25,7 @@ const Navbar = () => {
       dispatch(readNotifications());
       setAlreadyNotRead(true);
     }
-    setIsOpen(!isOpen);
+    dispatch(toggleNotificationModal());
   };
 
   useEffect(() => {
@@ -68,32 +69,19 @@ const Navbar = () => {
               </div>
             </button>
             {/* notification */}
-            <div className="dropdown sm:dropdown-end ">
-              <button
-                className="  w-10 h-10 py-auto mr-4 pt-1.5  b rounded-full bg-gray-100/5 border-none "
-                onClick={handleReadNotification}
-              >
-                <div className="indicator">
-                  <NotIcon />
 
-                  <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
-                    {!!notReadNots?.length && notReadNots?.length}
-                  </span>
-                </div>
-              </button>
+            <button
+              className="  w-10 h-10 py-auto mr-4 pt-1.5   rounded-full bg-gray-100/5 border-none "
+              onClick={handleReadNotification}
+            >
+              <div className="indicator">
+                <NotIcon />
 
-              {/* {isOpen && (
-                <details className="menu dropdown-content overflow-y-scroll  bg-bgCard2   z-[10]  w-[18rem] p-2 shadow">
-                  {!!notifications.length ? (
-                    <Notification />
-                  ) : (
-                    <h2 className="text-gray-300 text-center font-bold">
-                      You've not notification
-                    </h2>
-                  )}
-                </details>
-              )} */}
-            </div>
+                <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
+                  {!!notReadNots?.length && notReadNots?.length}
+                </span>
+              </div>
+            </button>
           </div>
 
           <div className=" items-center">

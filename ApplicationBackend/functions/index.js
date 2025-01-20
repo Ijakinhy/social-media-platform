@@ -183,6 +183,8 @@ exports.changeProfileImageUrl = onDocumentUpdated(
       event.data.before.data().profileImage !==
       event.data.after.data().profileImage
     ) {
+      console.log("profile changed ");
+
       const batch = db.batch();
       // const userRef  =  db.doc(`/users/${event.params.handle}`)
       const screamsSnap = await db

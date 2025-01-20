@@ -6,8 +6,6 @@ export const signupUser = createAsyncThunk(
   "/user/signUp",
   async ({ formData, navigate }, { rejectWithValue, dispatch }) => {
     try {
-      console.log(formData);
-
       const res = await axios.post("/api/signUp", formData);
       const token = res.data.token;
       setDefaultToken({ token });
@@ -15,7 +13,6 @@ export const signupUser = createAsyncThunk(
       navigate("/");
       return res.data;
     } catch (error) {
-      console.log(error.message);
       return rejectWithValue(error?.response?.data);
     }
   }
@@ -36,7 +33,8 @@ export const signInUser = createAsyncThunk(
       return res.data;
     } catch (error) {
       console.log(error);
-      return rejectWithValue(error.message);
+
+      return rejectWithValue(error?.response?.data);
     }
   }
 );
@@ -155,5 +153,19 @@ export const fetchUserDetails = createAsyncThunk(
     const res = await axios.get(`/api/user/${handle}`);
 
     return res.data;
+  }
+);
+
+//  add user details
+
+export const addUserDetails = createAsyncThunk(
+  "/user/addUserDetails",
+  async (formData) => {
+    try {
+      const res = await axios.post("/api/user", formData);
+      return res.data;
+    } catch (error) {
+      console.log(error);
+    }
   }
 );

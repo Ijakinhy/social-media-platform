@@ -1,22 +1,16 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import logo from "../images/logo.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { signupUser } from "../redux/userActions";
+import { PiInfoFill } from "react-icons/pi";
 
 const SignUp = () => {
-  // const [formData, setFormData] = useState({
-  //   handle: "",
-  //   email: "",
-  //   password: "",
-  //   confirmPassword: "",
-  //   firstName: "",
-  // });
+  const [isFocused, setIsFocused] = useState(false);
   const navigate = useNavigate();
+  const lastNameInput = useRef(null);
 
-  const {
-    loading: { signup },
-  } = useSelector((state) => state.user);
+  const { loading, errors } = useSelector((state) => state.user);
 
   const dispatch = useDispatch();
 
@@ -28,6 +22,8 @@ const SignUp = () => {
     dispatch(signupUser({ formData, navigate }));
     // setFormData({ handle: "", email: "", password: "" });
   };
+  const handleFocus = (e) => setIsFocused(true);
+  const handleBlur = (e) => setIsFocused(false);
 
   return (
     <div className="bg-slate-200 min-h-screen pb-9 pt-8">
@@ -46,51 +42,106 @@ const SignUp = () => {
           className="flex flex-col w-full items-center "
           onSubmit={handleSignup}
         >
-          <div className="flex items-center  w-full max-w-md">
-            <input
-              autoComplete="off"
-              type="text"
-              name="lastName"
-              placeholder="first name "
-              className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   mr-3  w-full max-w-md"
-            />
-            <input
-              autoComplete="off"
-              name="handle"
-              type="text"
-              placeholder="last name "
-              className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
-            />
+          <div className="flex   w-full max-w-md">
+            <div className="relative flex-grow mr-2 ">
+              <input
+                ref={lastNameInput}
+                autoComplete="off"
+                type="text"
+                name="lastName"
+                placeholder="first name"
+                // required
+                className={`p-2 border text-sm rounded-md input-bordered my-5  ${
+                  errors?.signup?.lastName && "border-red-500"
+                } focus:border-none border-gray-400 placeholder:capitalize    w-full max-w-md`}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+              />
+              {!!errors?.signup?.lastName && !isFocused && (
+                <PiInfoFill className="text-red-700 absolute inset-6 inset-x-[86%] inset-y-[35%]   text-[24px]" />
+              )}
+            </div>
+            <div className="relative flex-grow mr-2 ">
+              <input
+                ref={lastNameInput}
+                autoComplete="off"
+                type="text"
+                name="handle"
+                placeholder="last name"
+                // required
+                className={`p-2 border text-sm rounded-md input-bordered my-5  ${
+                  errors?.signup?.handle && "border-red-500"
+                } focus:border-none border-gray-400 placeholder:capitalize    w-full max-w-md`}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+              />
+              {!!errors?.signup?.handle && !isFocused && (
+                <PiInfoFill className="text-red-700 absolute inset-6 inset-x-[86%] inset-y-[35%]   text-[24px]" />
+              )}
+            </div>
           </div>
 
-          <input
-            autoComplete="off"
-            type="tel"
-            name="telephoneNumber"
-            placeholder="telephone number"
-            pattern="^\+?[1-9]\d{1,14}$"
-            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
-          />
-          <input
-            autoComplete="off"
-            name="email"
-            type="email"
-            placeholder="Email"
-            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
-          />
+          <div className=" flex-1 w-full relative">
+            <input
+              autoComplete="off"
+              type="tel"
+              name="telephoneNumber"
+              placeholder="+250784554222"
+              pattern="^\+?[1-9]\d{1,14}$"
+              className={`p-2 border text-sm rounded-md input-bordered my-5  ${
+                errors?.signup?.telephoneNumber && "border-red-500"
+              } focus:border-none border-gray-400 placeholder:capitalize    w-full max-w-md`}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+            />
+            {!!errors?.signup?.telephoneNumber && !isFocused && (
+              <PiInfoFill className="text-red-700 absolute inset-6 inset-x-[93%] inset-y-[35%]   text-[24px]" />
+            )}
+          </div>
+          <div className=" flex-1 w-full relative">
+            <input
+              autoComplete="off"
+              type="email"
+              name="email"
+              placeholder="email"
+              className={`p-2 border text-sm rounded-md input-bordered my-5  ${
+                errors?.signup?.email && "border-red-500"
+              } focus:border-none border-gray-400 placeholder:capitalize    w-full max-w-md`}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+            />
+            {!!errors?.signup?.email && !isFocused && (
+              <PiInfoFill className="text-red-700 absolute inset-6 inset-x-[93%] inset-y-[35%]   text-[24px]" />
+            )}
+          </div>
 
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            autoComplete="new-password"
-            className="p-2 border text-sm rounded-md input-bordered my-2 focus:border-none border-gray-400 placeholder:capitalize   w-full max-w-md"
-          />
+          <div className=" flex-1 w-full relative">
+            <input
+              autoComplete="off"
+              type="password"
+              name="password"
+              placeholder="password"
+              className={`p-2 border text-sm rounded-md input-bordered my-5  ${
+                errors?.signup?.password && "border-red-500"
+              } focus:border-none border-gray-400 placeholder:capitalize    w-full max-w-md`}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+            />
+            {!!errors?.signup?.password && !isFocused && (
+              <PiInfoFill className="text-red-700 absolute inset-6 inset-x-[93%] inset-y-[35%]   text-[24px]" />
+            )}
+          </div>
+          {errors?.signup?.general && (
+            <p className="text-left text-red-600 ml-2 text-[16px]">
+              {errors?.signin?.general}
+            </p>
+          )}
+
           <button
             type="submit"
             className="p-1 rounded-md hover:bg-sky-800  bg-sky-900 w-full  text-white mt-8   text-lg font-medium"
           >
-            {signup ? (
+            {loading.signup ? (
               <span className="loading loading-spinner loading-md" />
             ) : (
               "Sign up"

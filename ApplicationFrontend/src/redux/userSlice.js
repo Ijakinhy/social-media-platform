@@ -3,6 +3,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import setDefaultToken from "../utils/setDefaultToken";
 import {
+  addUserDetails,
   commentOnScream,
   createPost,
   fetchScreamDetails,
@@ -17,6 +18,7 @@ import {
 
 const initialState = {
   credentials: {},
+  openNotificationModel: false,
   loading: {
     signup: false,
     signin: false,
@@ -34,7 +36,10 @@ const initialState = {
   comments: [],
   scream: {},
   userData: {},
-  errors: {},
+  errors: {
+    signin: {},
+    signup: {},
+  },
 };
 
 ///  signup
@@ -111,6 +116,11 @@ const userSlice = createSlice({
           )
       );
     },
+    // toggle Notification  Model
+
+    toggleNotificationModal: (state, action) => {
+      state.openNotificationModel = !state.openNotificationModel;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -124,7 +134,7 @@ const userSlice = createSlice({
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading.signup = false;
-        state.errors = action.payload.error;
+        state.errors.signup = action.payload;
       })
       // sign in
       .addCase(signInUser.pending, (state) => {
@@ -137,7 +147,7 @@ const userSlice = createSlice({
       })
       .addCase(signInUser.rejected, (state, action) => {
         state.loading.signin = false;
-        state.errors = action.payload.error;
+        state.errors.signin = action.payload;
       })
       // get authenticated user details
       .addCase(getAuthenticatedUser.pending, (state) => {
@@ -184,6 +194,8 @@ const userSlice = createSlice({
       })
       ///  like scream
       .addCase(likeScream.fulfilled, (state, action) => {
+        console.log(action.payload);
+
         state.screams = state.screams.map((scream) =>
           scream.screamId === action.payload.screamId
             ? { ...scream, likeCount: action.payload.likeCount }
@@ -256,6 +268,21 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserDetails.rejected, (state, action) => {
         state.loading.userData = false;
+      })
+      .addCase(addUserDetails.fulfilled, (state, action) => {
+        state.credentials = {
+          ...state.credentials,
+          school: action.payload?.school,
+          location: action.payload?.location,
+          bio: action.payload?.bio,
+        };
+        state.userData.user = {
+          ...state.userData.user,
+          ...action.payload,
+        };
+      })
+      .addCase(addUserDetails.rejected, (state) => {
+        state.errors = action.payload;
       });
   },
 });
@@ -267,6 +294,7 @@ export const {
   updateLikeCount,
   updateCommentCount,
   updateComments,
+  toggleNotificationModal,
 } = userSlice.actions;
 
 export default userSlice.reducer;

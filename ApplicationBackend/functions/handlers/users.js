@@ -31,8 +31,6 @@ exports.signUpUser = async (req, res) => {
 
     if (!newUser.email) {
       errors.email = "Must not be empty";
-    } else if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(newUser.email)) {
-      errors.email = "Must be a valid email address";
     }
     if (!newUser.lastName) {
       errors.lastName = "Must not be empty";
@@ -51,7 +49,7 @@ exports.signUpUser = async (req, res) => {
     const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`;
     const userDoc = await db.doc(`/users/${newUser.handle}`).get();
     if (userDoc.exists) {
-      return res.status(400).json({ error: "User already exists." });
+      return res.status(400).json({ general: "User already exists." });
     } else {
       const response = await axios.post(signUpUrl, {
         email: newUser.email,
@@ -80,7 +78,7 @@ exports.signUpUser = async (req, res) => {
       error.response &&
       error.response.data.error.message === "EMAIL_EXISTS"
     ) {
-      return res.status(400).json({ email: "This email is already in use" });
+      return res.status(400).json({ general: "This email is already in use" });
     }
 
     return res
@@ -91,6 +89,20 @@ exports.signUpUser = async (req, res) => {
 
 exports.signInUser = async (req, res) => {
   try {
+    ///  validation
+    let errors = {};
+    if (!req.body.email) {
+      errors.email = "Must not be empty";
+    } else if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(req.body.email)) {
+      errors.email = "Must be a valid email address";
+    }
+    if (!req.body.password) {
+      errors.password = "Must not be empty";
+    }
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json(errors);
+    }
+
     const loginUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseConfig.apiKey}`;
     const response = await axios.post(loginUrl, {
       email: req.body.email,
@@ -105,7 +117,7 @@ exports.signInUser = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ general: "wrong credentials" });
   }
 };
 
@@ -140,26 +152,14 @@ exports.getUserData = async (req, res) => {
 exports.addUserDetails = async (req, res) => {
   const userDetails = {};
   try {
-    let errors = {};
     if (req.body.bio) {
       userDetails.bio = req.body.bio;
     }
     if (req.body.location) {
       userDetails.location = req.body.location;
     }
-    if (req.body.website) {
-      if (req.body.website.substr(0, 4) !== "http") {
-        errors.website = "must be valid url";
-        return res.status(400).json(errors);
-      } else {
-        userDetails.website = req.body.website;
-      }
-    }
-    if (req.body.instagram) {
-      userDetails.instagram = req.body.instagram;
-    }
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json(errors);
+    if (req.body.school) {
+      userDetails.school = req.body.school;
     }
 
     const userRef = db.doc(`/users/${req.user.handle}`);

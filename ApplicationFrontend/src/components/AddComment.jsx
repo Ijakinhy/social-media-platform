@@ -284,26 +284,3 @@ const AddComment = ({ openModal, setOpenModal }) => {
 };
 
 export default AddComment;
-
-//  <div className="flex  ml-20   ">
-//    <div className="w-10 ">
-//      <img
-//        className="w-7 rounded-full object-cover "
-//        src={profileImage}
-//        alt="Profile"
-//      />
-//    </div>
-//    <div className="flex flex-col">
-//      <div className="max-w-[40vw] flex  flex-col bg-gray-400/10 text-gray-100 px-2 py-[1px] rounded-2xl">
-//        <strong className="text-sm ml- tracking-wider capitalize">
-//          havyarimana
-//        </strong>
-//        <p className="text-[15px] font-normal font-afacad">
-//          this is the comment Lorem
-//        </p>
-//      </div>
-//      <span className="text-[13px] text-gray-500 tracking-normal font-bold ml-2 ">
-//        {dayjs(createdAt).fromNow(true)}
-//      </span>
-//    </div>
-//  </div>;

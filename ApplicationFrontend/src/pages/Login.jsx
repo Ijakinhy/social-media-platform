@@ -8,6 +8,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const {
     loading: { signin },
+    errors,
   } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -15,9 +16,7 @@ const Login = () => {
   const handleSignIn = (e) => {
     e.preventDefault();
     dispatch(signInUser({ formData, navigate }));
-    console.log(formData);
   };
-
   return (
     <div className="bg-slate-100 min-h-screen pb-9 pt-8">
       <img
@@ -40,16 +39,16 @@ const Login = () => {
           Log into Ijakinhy
         </h4>
 
+        <div className="bg-bgSupport border border-borderSupport w-full h-10">
+          <p className=" text-sm mt-2 text-center font-roboto text-black">
+            You must log in to continue
+          </p>
+        </div>
         <form
           action=""
           onSubmit={handleSignIn}
-          className="flex flex-col  items-center mt-auto mb-auto  "
+          className="flex flex-col    mt-6  "
         >
-          <div className="bg-bgSupport border border-borderSupport w-full h-10">
-            <p className=" text-sm mt-2 text-center font-roboto text-black">
-              You must log in to continue
-            </p>
-          </div>
           <input
             autoComplete="value"
             type="email"
@@ -58,8 +57,16 @@ const Login = () => {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="p-2 border text-sm rounded-md input-bordered my-5 focus:border-none  w-full max-w-xs"
+            className={`p-2 border text-sm rounded-md input-bordered  ${
+              !!errors?.signin?.email && "border-error"
+            }    focus:border-none  w-full max-w-xs`}
           />
+          {!!errors?.signin?.email && (
+            <p className="text-left text-error ml-2 text-[12px]">
+              {errors.signin.email}
+            </p>
+          )}
+
           <input
             autoComplete="value"
             type="password"
@@ -68,8 +75,16 @@ const Login = () => {
             onChange={(e) =>
               setFormData({ ...formData, password: e.target.value })
             }
-            className="p-2 border text-sm rounded-md input-bordered focus:border-none   w-full max-w-xs"
+            className={`p-2 border text-sm rounded-md mt-5 input-bordered ${
+              !!errors?.signin?.password && "border-error"
+            }  focus:border-none   w-full max-w-xs`}
           />
+          {!!errors?.signin?.password && (
+            <span className="text-left text-error ml-2 text-[12px]">
+              {errors.signin.password}
+            </span>
+          )}
+
           <button
             type="submit"
             className="p-1 rounded-md hover:bg-sky-900  bg-sky-800 w-full  text-white mt-8   text-lg font-medium"
