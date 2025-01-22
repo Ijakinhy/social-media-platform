@@ -40,7 +40,7 @@ const Navbar = () => {
       <div className=" bg-bgCard">
         <div className="navbar  items-center justify-evenly  sm:justify-between   ">
           <div className="">
-            <Link className=" flex items-center  text-xl leading-none">
+            <Link to="/" className=" flex items-center  text-xl leading-none">
               <img
                 src={logo}
                 className="w-12 mr-2 sm:mr-0 rounded-full"

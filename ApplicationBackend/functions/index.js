@@ -49,7 +49,6 @@ app.get("/scream/:screamId/unlike", authMiddleware, unlikeScream); /// unlike   
 app.delete("/scream/:screamId", authMiddleware, deleteScream); // delete scream
 app.post("/user", authMiddleware, addUserDetails); ///  add user details
 
-// app.get("/user/:handle", authMiddleware, getUserDetails); ///  get user details
 app.get("/user", authMiddleware, getAuthenticatedUsed); ///  get authenticated user
 app.post("/user/image", authMiddleware, uploadProfilePic); ////  edit or or add profile details
 app.get("/markNotificationRead", authMiddleware, markNotificationRead); ///  mark notification read

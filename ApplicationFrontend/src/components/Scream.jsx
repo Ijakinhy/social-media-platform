@@ -18,6 +18,7 @@ import {
   deleteNotificationOnUnlike,
   updateCommentCount,
   updateLikeCount,
+  updateProfileImage,
 } from "../redux/userSlice";
 import { Link } from "react-router-dom";
 
@@ -135,8 +136,13 @@ const Scream = ({ scream }) => {
           if (updatedScream.commentCount !== commentCount) {
             dispatch(updateCommentCount(updatedScream));
           }
+
           if (updatedScream.likeCount !== likeCount) {
             dispatch(updateLikeCount(updatedScream));
+          }
+
+          if (updatedScream.profileImage !== profileImage) {
+            dispatch(updateProfileImage(updatedScream));
           }
         }
       }
@@ -146,7 +152,7 @@ const Scream = ({ scream }) => {
       unsubscribeNotification();
       unsubscribeScream();
     };
-  }, [dispatch]);
+  }, [dispatch, likeCount]);
 
   const handleOPenModal = () => {
     setOpenModal(true);

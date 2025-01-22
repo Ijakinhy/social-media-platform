@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { IoSchoolSharp } from "react-icons/io5";
 import { FaLocationDot } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,14 +6,12 @@ import phoneIcon from "../images/phoneIcon.png";
 import emailIcon from "../images/emailIcon.png";
 import { Link } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
-import { addUserDetails } from "../redux/userActions";
+import { addUserDetails, changeProfileImage } from "../redux/userActions";
+import { FaCamera } from "react-icons/fa";
 const Profile = ({ credentials, page }) => {
-  const [formData, setFormData] = useState({
-    bio: "",
-    school: "",
-    location: "",
-  });
   const [openModal, setOpenModal] = useState(false);
+  const [image, setImage] = useState(null);
+  const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   const handleAddDetails = (e) => {
     e.preventDefault();
@@ -21,7 +19,15 @@ const Profile = ({ credentials, page }) => {
     const formData = Object.fromEntries(Form.entries());
     dispatch(addUserDetails(formData));
     setOpenModal(!openModal);
+    e.target.reset();
   };
+
+  const handleUploadProfileImage = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+    dispatch(changeProfileImage(file));
+  };
+
   return (
     <>
       <div className="bg-bgCard w-[24rem] mt-4 xs:hidden  sm:w-[20rem]  sm:mx-2  mr-8 h-full">
@@ -37,11 +43,29 @@ const Profile = ({ credentials, page }) => {
           </Link>
         ) : (
           <div className="w-full relative glass h-24">
-            <img
-              className="absolute left-1/2 top-20 w-28 h-28 rounded-full transform -translate-x-1/2 -translate-y-1/2 object-cover"
-              src={credentials?.profileImage}
-              alt="Profile"
-            />
+            <div className="relative">
+              <img
+                className="absolute left-1/2 top-20 w-28 h-28 rounded-full transform -translate-x-1/2 -translate-y-1/2 object-cover"
+                src={credentials?.profileImage}
+                alt="Profile"
+              />
+              <input
+                type="file"
+                id="edit-profileImage"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleUploadProfileImage}
+              />
+
+              <label
+                htmlFor="edit-profileImage"
+                className={`cursor-pointer bg-gray-600/80 rounded-full w-8 h-8 flex items-center justify-center absolute inset-0  inset-x-[57%] inset-y-24 ${
+                  page === "userProfilePage" ? "block" : "hidden"
+                }`}
+              >
+                <FaCamera className="text-gray-100 text-lg font-bold " />
+              </label>
+            </div>
           </div>
         )}
 
@@ -86,7 +110,7 @@ const Profile = ({ credentials, page }) => {
           <div className="flex items-center mt-4">
             <img src={phoneIcon} className="ml-2" alt="phone number icon" />
             <p className="ml-5 text-gray-200 text-left tracking-wide leading-[1]">
-              +25{credentials?.telephoneNumber}
+              {credentials?.telephoneNumber}
               <br />
               <small className=" text-gray-400/65  text-xs leading-none ml-1">
                 Mobile
@@ -120,14 +144,6 @@ const Profile = ({ credentials, page }) => {
           </div>
         )}
       </div>
-
-      {/* edit profile  details  */}
-      {/* 
-      <input
-        type="checkbox"
-        id="edit-profile-details"
-        className="modal-toggle"
-      /> */}
 
       {openModal && (
         <dialog className="modal modal-open">

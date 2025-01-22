@@ -4,6 +4,8 @@ import Profile from "../components/Profile";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserDetails } from "../redux/userActions";
 import { useParams } from "react-router-dom";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "../firebase";
 
 const UserDetails = () => {
   const { handle } = useParams();
@@ -13,7 +15,6 @@ const UserDetails = () => {
     () => userData.screams,
     [userData.screams]
   );
-
   useEffect(() => {
     dispatch(fetchUserDetails(handle));
   }, [handle]);
@@ -34,10 +35,7 @@ const UserDetails = () => {
           <div className="h-full">
             <div className=" flex   justify-center z-0">
               {/* /// profile  */}
-              <Profile
-                credentials={userData.user}
-                authenticated={credentials.handle === userData.user.handle}
-              />
+              <Profile credentials={userData.user} page="user" />
               <div className="">
                 {/* ///  scream  Card */}
                 {memoiseUserScreams.map((scream) => (

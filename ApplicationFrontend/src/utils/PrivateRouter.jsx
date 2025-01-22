@@ -48,7 +48,7 @@ const PrivateRouter = React.memo(({ authenticated }) => {
                 <Notification />
               ) : (
                 <h2 className="text-gray-300 text-center font-bold">
-                  You've not notification
+                  You have no notifications at the moment.
                 </h2>
               )}
             </div>

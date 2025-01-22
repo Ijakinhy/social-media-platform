@@ -138,8 +138,8 @@ exports.getUserData = async (req, res) => {
     userData.screams = [];
     screamsSnap.forEach((doc) => {
       userData.screams.push({
-        screamId: doc.id,
         ...doc.data(),
+        screamId: doc.id,
       });
     });
     return res.status(201).json(userData);
@@ -334,7 +334,7 @@ exports.uploadProfilePic = async (req, res) => {
           });
         });
       }
-      return res.status(200).json({ imageUrl });
+      return res.status(200).json(imageUrl);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: "error while uploading file" });

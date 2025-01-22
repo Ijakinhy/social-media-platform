@@ -4,6 +4,7 @@ import axios from "axios";
 import setDefaultToken from "../utils/setDefaultToken";
 import {
   addUserDetails,
+  changeProfileImage,
   commentOnScream,
   createPost,
   fetchScreamDetails,
@@ -35,7 +36,10 @@ const initialState = {
   likes: [],
   comments: [],
   scream: {},
-  userData: {},
+  userData: {
+    user: {},
+    screams: [],
+  },
   errors: {
     signin: {},
     signup: {},
@@ -69,6 +73,7 @@ const userSlice = createSlice({
         likeCount: action.payload.likeCount,
       };
     },
+
     // update the comment count in  real time
     updateCommentCount: (state, action) => {
       state.screams = state.screams.map((scream) =>
@@ -120,6 +125,44 @@ const userSlice = createSlice({
 
     toggleNotificationModal: (state, action) => {
       state.openNotificationModel = !state.openNotificationModel;
+    },
+    ///  update profile image real  time
+    updateProfileImage: (state, action) => {
+      // update user data user
+      if (
+        Object.keys(state.userData.user).length !== 0 &&
+        state.userData.user.profileImage !== action.payload.profileImage
+      ) {
+        state.userData.user = {
+          ...state.userData.user,
+          profileImage: action.payload.profileImage,
+        };
+      }
+      // update user data screams
+
+      if (state.userData.screams.length !== 0) {
+        state.userData.screams = state.userData.screams.map((scream) =>
+          scream.profileImage !== action.payload.profileImage
+            ? { ...scream, profileImage: action.payload.profileImage }
+            : scream
+        );
+      }
+      // update screams
+      if (state.screams.length > 0) {
+        state.screams = state.screams.map((scream) =>
+          scream.screamId === action.payload.screamId &&
+          scream.profileImage !== action.payload.profileImage
+            ? { ...scream, profileImage: action.payload.profileImage }
+            : scream
+        );
+      }
+      ///  update notifications
+
+      state.notifications = state.notifications.map((notification) =>
+        notification.sender === action.payload.userHandle
+          ? { ...notification, profileImage: action.payload.profileImage }
+          : notification
+      );
     },
   },
   extraReducers: (builder) => {
@@ -194,14 +237,14 @@ const userSlice = createSlice({
       })
       ///  like scream
       .addCase(likeScream.fulfilled, (state, action) => {
-        console.log(action.payload);
-
+        // update screams
         state.screams = state.screams.map((scream) =>
-          scream.screamId === action.payload.screamId
+          scream.screamId === action.meta.arg
             ? { ...scream, likeCount: action.payload.likeCount }
             : scream
         );
         state.likes.unshift(action.payload);
+        // update scream
         state.scream =
           state.scream.screamId === action.payload.screamId
             ? { ...state.scream, likeCount: action.payload.likeCount }
@@ -220,6 +263,7 @@ const userSlice = createSlice({
         state.likes = state.likes.filter(
           (like) => like.screamId !== action.payload.screamId
         );
+        //update scream
         state.scream =
           state.scream.screamId === action.payload.screamId
             ? { ...state.scream, likeCount: action.payload.likeCount }
@@ -263,8 +307,11 @@ const userSlice = createSlice({
         state.loading.userData = true;
       })
       .addCase(fetchUserDetails.fulfilled, (state, action) => {
+        console.log(action.payload);
+
         state.loading.userData = false;
-        state.userData = action.payload;
+        state.userData.user = action.payload.user;
+        state.userData.screams = action.payload.screams;
       })
       .addCase(fetchUserDetails.rejected, (state, action) => {
         state.loading.userData = false;
@@ -283,6 +330,41 @@ const userSlice = createSlice({
       })
       .addCase(addUserDetails.rejected, (state) => {
         state.errors = action.payload;
+      })
+      ///  change profile picture
+      .addCase(changeProfileImage.fulfilled, (state, action) => {
+        state.credentials = {
+          ...state.credentials,
+          profileImage: action.payload,
+        };
+        state.userData.user = {
+          ...state.userData.user,
+          profileImage: action.payload,
+        };
+        // update also  the scream profile image
+        state.screams = state.screams.map((scream) => {
+          if (
+            scream.userHandle === state.userData.user.handle &&
+            scream.profileImage !== action.payload
+          ) {
+            return {
+              ...scream,
+              profileImage: action.payload,
+            };
+          } else {
+            return scream;
+          }
+        });
+        state.userData.screams = state.userData.screams.map((scream) =>
+          scream.userHandle === state.userData.user.handle
+            ? { ...scream, profileImage: action.payload }
+            : scream
+        );
+        state.notifications = state.notifications.map((notification) =>
+          notification.sender === state.userData.user.handle
+            ? { ...notification, profileImage: action.payload }
+            : notification
+        );
       });
   },
 });
@@ -295,6 +377,7 @@ export const {
   updateCommentCount,
   updateComments,
   toggleNotificationModal,
+  updateProfileImage,
 } = userSlice.actions;
 
 export default userSlice.reducer;

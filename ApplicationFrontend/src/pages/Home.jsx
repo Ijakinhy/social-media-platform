@@ -15,6 +15,9 @@ import { db } from "../firebase";
 import { getAuthenticatedUser } from "../redux/userActions";
 import { addNewScream } from "../redux/userSlice";
 import Notification from "../components/Notification";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -25,11 +28,12 @@ const Home = () => {
 
   const memoiseScreams = useMemo(() => screams, [screams]);
 
+  // / event listener for created scream
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   useEffect(() => {
     dispatch(getAuthenticatedUser());
   }, [dispatch]);
-
-  // / event listener for created scream
   useEffect(() => {
     let IsInitialSnap = true;
 
@@ -45,6 +49,7 @@ const Home = () => {
         return;
       }
       snapshot.docChanges().forEach((change) => {
+        // const currentData = change.doc.data();
         if (change.type === "added") {
           const newScream = { ...change.doc.data(), screamId: change.doc.id };
           if (newScream.userHandle !== credentials.handle) {

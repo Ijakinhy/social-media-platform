@@ -169,3 +169,25 @@ export const addUserDetails = createAsyncThunk(
     }
   }
 );
+
+////  upload profile image
+
+export const changeProfileImage = createAsyncThunk(
+  "/user/imageUpload",
+  async (file) => {
+    try {
+      const res = await axios.post(
+        "/api/user/image",
+        { file },
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return res.data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
