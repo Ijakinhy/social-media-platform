@@ -59,7 +59,17 @@ const userSlice = createSlice({
         !state.screams.some((scream) => scream.screamId === newScream.screamId)
       ) {
         state.screams.unshift(newScream);
-        if (state.userData.user.handle === action.payload.userHandle) {
+      }
+
+      if (
+        state.userData.user.handle === newScream.userHandle &&
+        Object.keys(state.userData.user).length > 0
+      ) {
+        if (
+          !state.userData.screams.some(
+            (scream) => scream.screamId === newScream.screamId
+          )
+        ) {
           state.userData.screams.unshift(newScream);
         }
       }
@@ -259,7 +269,15 @@ const userSlice = createSlice({
           )
         ) {
           state.screams.unshift(newScream);
-          state.userData.screams.unshift(newScream);
+        }
+        if (state.userData.user.handle === newScream.userHandle) {
+          if (
+            !state.userData.screams.some(
+              (scream) => scream.screamId === newScream.screamId
+            )
+          ) {
+            state.userData.screams.unshift(newScream);
+          }
         }
       })
       .addCase(createPost.rejected, (state, action) => {

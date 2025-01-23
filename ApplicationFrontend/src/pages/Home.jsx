@@ -29,8 +29,6 @@ const Home = () => {
   const memoiseScreams = useMemo(() => screams, [screams]);
 
   // / event listener for created scream
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     let IsInitialSnap = true;
@@ -60,7 +58,7 @@ const Home = () => {
     return () => {
       unsubscribeScream();
     };
-  }, [dispatch]);
+  }, [dispatch, screams]);
 
   return (
     <>

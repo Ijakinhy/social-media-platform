@@ -53,7 +53,7 @@ const PrivateRouter = React.memo(({ authenticated }) => {
             className={`fixed left-1/2 xs:left-auto ${
               openNotificationModel ? "block" : "hidden"
             }   xs:right-5  z-[30]  transform translate-x-[10%]  -translate-y-1    
-          bg-bgCard overflow-y-scroll h-[40rem] rounded-sm  w-[18rem] p-2 shadow-2xl `}
+          bg-bgCard overflow-y-scroll h-[100vh] rounded-sm  w-[18rem] p-2 shadow-2xl `}
           >
             <div className="">
               {!!notifications.length ? (

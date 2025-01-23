@@ -6,6 +6,7 @@ import { fetchUserDetails } from "../redux/userActions";
 import { useParams } from "react-router-dom";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../firebase";
+import { addNewScream } from "../redux/userSlice";
 
 const UserDetails = () => {
   const { handle } = useParams();
@@ -18,6 +19,35 @@ const UserDetails = () => {
   useEffect(() => {
     dispatch(fetchUserDetails(handle));
   }, [handle]);
+  useEffect(() => {
+    let IsInitialSnap = true;
+
+    const screamCollection = collection(db, "screams");
+    const screamsColQuery = query(
+      screamCollection,
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribeScream = onSnapshot(screamsColQuery, (snapshot) => {
+      if (IsInitialSnap) {
+        IsInitialSnap = false;
+        return;
+      }
+      snapshot.docChanges().forEach((change) => {
+        // const currentData = change.doc.data();
+        if (change.type === "added") {
+          const newScream = { ...change.doc.data(), screamId: change.doc.id };
+          if (newScream.userHandle !== credentials.handle) {
+            dispatch(addNewScream(newScream));
+          }
+        }
+      });
+    });
+
+    return () => {
+      unsubscribeScream();
+    };
+  }, [dispatch]);
 
   return (
     <>
