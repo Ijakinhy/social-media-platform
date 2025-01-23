@@ -3,18 +3,18 @@ import { FaHome } from "react-icons/fa";
 import { FaFacebookMessenger } from "react-icons/fa6";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../images/logo.jpg";
 import logoutIcon from "../images/logOutIcon.png";
 import { readNotifications } from "../redux/userActions";
 import NotIcon from "../utils/NotIcon";
 import Notification from "./Notification";
 import { toggleNotificationModal } from "../redux/userSlice";
+import axios from "axios";
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(true);
   const [alreadyNotRead, setAlreadyNotRead] = useState(false);
   const { credentials, notifications } = useSelector((state) => state.user);
-
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const notReadNots = notifications?.filter(
     (notification) => !notification.read
@@ -34,6 +34,12 @@ const Navbar = () => {
       setAlreadyNotRead(false);
     }
   }, [notReadNots]);
+
+  const handleLogoutUser = () => {
+    localStorage.removeItem("token");
+    delete axios.defaults.headers.common["Authorization"];
+    navigate("/login");
+  };
 
   return (
     <>
@@ -132,7 +138,10 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="ml-2 my-auto">
-                    <button className="text-sky-200/80  cursor-pointer">
+                    <button
+                      className="text-sky-200/80  cursor-pointer"
+                      onClick={handleLogoutUser}
+                    >
                       Log Out
                     </button>
                   </div>

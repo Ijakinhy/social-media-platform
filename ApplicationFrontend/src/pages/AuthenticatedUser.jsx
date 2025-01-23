@@ -33,7 +33,7 @@ const AuthenticatedUser = () => {
       ) : (
         <>
           <div className="h-full">
-            <div className=" relative flex sm:justify-evenly justify-center  ">
+            <div className=" relative flex xs:flex-col sm:justify-evenly justify-center  ">
               {/* /// profile  */}
               <Profile credentials={userData.user} page={"userProfilePage"} />
               <div className="">

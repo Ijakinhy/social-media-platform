@@ -30,7 +30,11 @@ const Profile = ({ credentials, page }) => {
 
   return (
     <>
-      <div className="bg-bgCard w-[24rem] mt-4 xs:hidden  sm:w-[20rem]  sm:mx-2  mr-8 h-full">
+      <div
+        className={`bg-bgCard w-[24rem] mt-4 ${
+          page === "userProfilePage" ? "xs:w-full" : "xs:hidden"
+        }    sm:w-[20rem]  sm:mx-2  mr-8 h-full`}
+      >
         {page === "home" ? (
           <Link to={`/user/${credentials?.handle}`}>
             <div className="w-full relative glass h-24">
