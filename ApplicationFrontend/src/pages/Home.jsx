@@ -31,9 +31,7 @@ const Home = () => {
   // / event listener for created scream
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  useEffect(() => {
-    dispatch(getAuthenticatedUser());
-  }, [dispatch]);
+
   useEffect(() => {
     let IsInitialSnap = true;
 

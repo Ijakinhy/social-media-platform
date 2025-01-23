@@ -4,6 +4,7 @@ import Profile from "../components/Profile";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserDetails } from "../redux/userActions";
 import { useParams } from "react-router-dom";
+import CreateScream from "../components/CreateScream";
 
 const AuthenticatedUser = () => {
   const { handle } = useParams();
@@ -32,12 +33,14 @@ const AuthenticatedUser = () => {
       ) : (
         <>
           <div className="h-full">
-            <div className=" flex   justify-center z-0">
+            <div className=" relative flex sm:justify-evenly justify-center  ">
               {/* /// profile  */}
               <Profile credentials={userData.user} page={"userProfilePage"} />
               <div className="">
+                {/* ///  create card  post  */}
+                <CreateScream />
                 {/* ///  scream  Card */}
-                {userData.screams.map((scream) => (
+                {memoiseUserScreams.map((scream) => (
                   <Scream key={scream.screamId} scream={scream} />
                 ))}
               </div>

@@ -1,20 +1,12 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import AuthenticatedUser from "./pages/AuthenticatedUser";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import PrivateRouter from "./utils/PrivateRouter";
 import UserDetails from "./pages/UserDetails";
-import Navbar from "./components/Navbar";
-import AuthenticatedUser from "./pages/AuthenticatedUser";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { getAuthenticatedUser } from "./redux/userActions";
-import { jwtDecode } from "jwt-decode";
-import axios from "axios";
+import PrivateRouter from "./utils/PrivateRouter";
 
 export default function App() {
-  const dispatch = useDispatch();
-
   return (
     <>
       <Routes>

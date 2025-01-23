@@ -59,6 +59,9 @@ const userSlice = createSlice({
         !state.screams.some((scream) => scream.screamId === newScream.screamId)
       ) {
         state.screams.unshift(newScream);
+        if (state.userData.user.handle === action.payload.userHandle) {
+          state.userData.screams.unshift(newScream);
+        }
       }
     },
     ///  update the like count in real time
@@ -72,6 +75,11 @@ const userSlice = createSlice({
         ...state.scream,
         likeCount: action.payload.likeCount,
       };
+      state.userData.screams = state.userData.screams.map((scream) =>
+        scream.screamId === action.payload.screamId
+          ? { ...scream, likeCount: action.payload.likeCount }
+          : scream
+      );
     },
 
     // update the comment count in  real time
@@ -85,6 +93,11 @@ const userSlice = createSlice({
         ...state.scream,
         commentCount: action.payload.commentCount,
       };
+      state.userData.screams = state.userData.screams.map((scream) =>
+        scream.screamId === action.payload.screamId
+          ? { ...scream, commentCount: action.payload.commentCount }
+          : scream
+      );
     },
     // update the scream comments array on adding the comment
     updateComments: (state, action) => {
@@ -163,6 +176,29 @@ const userSlice = createSlice({
           ? { ...notification, profileImage: action.payload.profileImage }
           : notification
       );
+      /// update scream
+      if (Object.keys(state.scream).length > 0) {
+        state.scream =
+          state.scream.userHandle === action.payload.userHandle &&
+          state.scream.profileImage !== action.payload.profileImage
+            ? {
+                ...state.scream,
+                profileImage: action.payload.profileImage,
+              }
+            : state.scream;
+      }
+      /// update comments
+      if (state.comments.length > 0) {
+        state.comments = state.comments.map((comment) =>
+          comment.userHandle === action.payload.userHandle &&
+          comment.profileImage !== action.payload.profileImage
+            ? {
+                ...comment,
+                profileImage: action.payload.profileImage,
+              }
+            : comment
+        );
+      }
     },
   },
   extraReducers: (builder) => {
@@ -223,6 +259,7 @@ const userSlice = createSlice({
           )
         ) {
           state.screams.unshift(newScream);
+          state.userData.screams.unshift(newScream);
         }
       })
       .addCase(createPost.rejected, (state, action) => {
@@ -245,10 +282,17 @@ const userSlice = createSlice({
         );
         state.likes.unshift(action.payload);
         // update scream
-        state.scream =
-          state.scream.screamId === action.payload.screamId
-            ? { ...state.scream, likeCount: action.payload.likeCount }
-            : state.scream;
+        if (Object.entries(state.scream).length > 0) {
+          state.scream =
+            state.scream.screamId === action.payload.screamId
+              ? { ...state.scream, likeCount: action.payload.likeCount }
+              : state.scream;
+        }
+        state.userData.screams = state.userData.screams.map((scream) =>
+          scream.screamId === action.payload.screamId
+            ? { ...scream, likeCount: action.payload.likeCount }
+            : scream
+        );
       })
       ///  unlike scream
       .addCase(unlikeScream.fulfilled, (state, action) => {
@@ -258,6 +302,11 @@ const userSlice = createSlice({
                 ...scream,
                 likeCount: action.payload.likeCount,
               }
+            : scream
+        );
+        state.userData.screams = state.userData.screams.map((scream) =>
+          scream.screamId === action.payload.screamId
+            ? { ...scream, likeCount: action.payload.likeCount }
             : scream
         );
         state.likes = state.likes.filter(
@@ -299,6 +348,11 @@ const userSlice = createSlice({
             ? { ...scream, commentCount: action.payload.commentCount }
             : scream
         );
+        // state.userData.screams = state.userData.screams.map((scream) =>
+        //   scream.screamId === action.payload.screamId
+        //     ? { ...scream, commentCount: action.payload.commentCount }
+        //     : scream
+        // );
       })
       .addCase(commentOnScream.rejected, (state, action) => {
         state.loading.comment = false;
@@ -307,8 +361,6 @@ const userSlice = createSlice({
         state.loading.userData = true;
       })
       .addCase(fetchUserDetails.fulfilled, (state, action) => {
-        console.log(action.payload);
-
         state.loading.userData = false;
         state.userData.user = action.payload.user;
         state.userData.screams = action.payload.screams;

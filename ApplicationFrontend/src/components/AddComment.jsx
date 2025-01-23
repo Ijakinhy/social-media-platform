@@ -221,9 +221,14 @@ const AddComment = ({ openModal, setOpenModal }) => {
               </div>
             </div>
             {/* center  */}
-            <div className="flex flex-col m ">
+            <div className="flex flex-col  ">
               {comments.map((comment) => (
-                <div className="flex  ml-3   " key={comment.commentId}>
+                <div
+                  className={`flex mb-2.5  ${
+                    comment.userHandle === credentials.handle ? "ml-16" : "ml-3"
+                  }  `}
+                  key={comment.commentId}
+                >
                   <div className="w-10 mr-3">
                     <img
                       className="w-10 h-10 rounded-full object-cover mr-3.5"
@@ -232,11 +237,11 @@ const AddComment = ({ openModal, setOpenModal }) => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <div className="max-w-[40vw] flex  flex-col bg-gray-400/10 text-gray-100 px-2 py-[1px] rounded-2xl">
+                    <div className="max-w-[40vw] pl-3 flex  flex-col bg-gray-400/10 text-gray-100 pr-8 mr-2 py-[1px] rounded-2xl">
                       <strong className="text-sm ml- tracking-wider capitalize">
                         {comment.userHandle}
                       </strong>
-                      <p className="text-[15px] font-normal font-afacad">
+                      <p className="text-[15px] max font-normal font-afacad">
                         {comment.commentText}
                       </p>
                     </div>

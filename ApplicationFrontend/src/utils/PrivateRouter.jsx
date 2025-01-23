@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { Navigate, Outlet } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import Notification from "../components/Notification";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getAuthenticatedUser } from "../redux/userActions";
 
 const PrivateRouter = React.memo(({ authenticated }) => {
   const token = useMemo(() => localStorage.getItem("token"), []);
@@ -28,7 +29,18 @@ const PrivateRouter = React.memo(({ authenticated }) => {
 
     return <Navigate to="/login" />;
   }
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (localStorage.token) {
+      const decodedToken = jwtDecode(localStorage.token);
+      if (decodedToken.exp * 1000 < Date.now()) {
+        localStorage.removeItem("token");
+        console.log("Token expired");
+      } else {
+        dispatch(getAuthenticatedUser());
+      }
+    }
+  }, [localStorage.token]);
   return token ? (
     <>
       <nav className="sticky top-0 z-20 ">
