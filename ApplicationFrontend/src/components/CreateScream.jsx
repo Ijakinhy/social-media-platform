@@ -118,7 +118,7 @@ const CreateScream = () => {
                   // accept="image/*"
                 />
                 <div className="flex items-center justify-center w-full h-12 border border-gray-300/20 rounded-md text-sm hover:bg-gray-400/20 text-gray-400">
-                  <img src={imageIcon} alt="" className="mr-4" />
+                  {/* <img src={imageIcon} alt="" className="mr-4" /> */}
                   Add to your post
                 </div>
               </label>

@@ -3,6 +3,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
 import { useSelector } from "react-redux";
 import { AiFillLike, AiOutlineComment } from "react-icons/ai";
+import { Link } from "react-router-dom";
 const Notification = () => {
   dayjs.extend(relativeTime);
   dayjs.extend(updateLocale);
@@ -43,7 +44,8 @@ const Notification = () => {
         } = notification;
 
         return (
-          <div
+          <Link
+            to={`/${screamId}`}
             key={notificationId}
             className={`flex  hover:bg-accent/5  pl-2  mb-6 cursor-pointer  py-2 rounded-md  ${
               !read && "bg-gray-100/15"
@@ -75,7 +77,7 @@ const Notification = () => {
                 {dayjs(createdAt).fromNow(true)}
               </span>
             </div>
-          </div>
+          </Link>
         );
       })}
     </>

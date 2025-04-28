@@ -174,7 +174,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
                 className={`text-white pb-1.5 ${
                   screamImage
                     ? "  text-left text-[15px] leading-normal max-w-[39rem] mx-4 tracking-normal  "
-                    : " bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 leading-normal tracking-normal  max-w-full  h-[24rem]  flex items-center justify-center text-[20px]  px-10 "
+                    : " bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 leading-normal tracking-normal  max-w-full  h-[30rem]  flex items-center justify-center text-[20px]  px-10 "
                 }`}
               >
                 {description}
@@ -256,11 +256,13 @@ const AddComment = ({ openModal, setOpenModal }) => {
             {/* ///  bottom */}
           </div>
           <div className="flex items-center h-20    bg-bgCard z-[100] shadow-inner   sticky bottom-0 mt-8  ">
-            <img
-              src={credentials.profileImage}
-              className="w-9 rounded-full mx-3"
-              alt=""
-            />
+            <div className="w-11 h-11  mx-3 rounded-full">
+              <img
+                src={credentials.profileImage}
+                className="w-11 h-11 object-cover rounded-full "
+                alt=""
+              />
+            </div>
 
             <form
               className="flex items-center  flex-grow px-1 py-1 rounded-xl bg-gray-300/5 mr-5 "

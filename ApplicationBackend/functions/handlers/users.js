@@ -406,8 +406,6 @@ exports.getUserMessages = async (req, res) => {
       .where("recipient", "==", req.params.sender)
       .orderBy("updatedAt", "asc")
       .get();
-    console.log(req.params.sender);
-    console.log(req.user.handle);
 
     recipientMessagesSnap.forEach((doc) => {
       chats.push(doc.data());
