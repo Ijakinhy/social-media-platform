@@ -133,7 +133,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
         <></>
       ) : (
         <div className="modal-box z-0 bg-bgCard px-0 py-0 max-w-3xl rounded-md h-[100vh] custom-scrollbar">
-          <div className=" flex items-center px-5 py-2   justify-between">
+          <div className=" flex items-center px-5 py-2   justify-between sticky top-0 bg-bgCard z-10">
             <h2 className="text-xl   font-semibold text-gray-200 ml-auto mr-auto ">
               {userHandle}'s post
             </h2>
@@ -148,7 +148,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
           {/* ///  body */}
           <div className="flex  flex-col">
             {/* top */}
-            <div className="pl-3  flex items-center justify-between py-2">
+            <div className="pl-3  flex items-center justify-between py-2 ">
               <div className="flex items-center">
                 <img
                   className="w-12 h-12 rounded-full object-cover mr-3.5"
@@ -255,7 +255,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
 
             {/* ///  bottom */}
           </div>
-          <div className="flex items-center h-20    bg-bgCard z-[100] shadow-inner   sticky bottom-0 mt-8  ">
+          <div className="flex items-center h-20    bg-bgCard z-[100] shadow-inner   sticky bottom-0  mt-8 ">
             <div className="w-11 h-11  mx-3 rounded-full">
               <img
                 src={credentials.profileImage}
