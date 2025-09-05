@@ -222,6 +222,7 @@ const userSlice = createSlice({
         state.credentials = action.payload;
       })
       .addCase(signupUser.rejected, (state, action) => {
+        
         state.loading.signup = false;
         state.errors.signup = action.payload;
       })

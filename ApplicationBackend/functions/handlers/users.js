@@ -30,7 +30,7 @@ exports.signUpUser = async (req, res) => {
     }
 
     if (!newUser.email) {
-      errors.email = "Must not be empty";
+      errors.emaail = "Must not be empty";
     }
     if (!newUser.lastName) {
       errors.lastName = "Must not be empty";
@@ -46,7 +46,7 @@ exports.signUpUser = async (req, res) => {
       return res.status(400).json(errors);
     }
 
-    const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`;
+    const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`;a
     const userDoc = await db.doc(`/users/${newUser.handle}`).get();
     if (userDoc.exists) {
       return res.status(400).json({ general: "User already exists." });

@@ -133,7 +133,7 @@ const SignUp = () => {
           </div>
           {errors?.signup?.general && (
             <p className="text-left text-red-600 ml-2 text-[16px]">
-              {errors?.signin?.general}
+              {errors?.signup?.general}
             </p>
           )}
 

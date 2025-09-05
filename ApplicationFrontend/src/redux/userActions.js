@@ -4,7 +4,7 @@ import setDefaultToken from "../utils/setDefaultToken";
 
 export const signupUser = createAsyncThunk(
   "/user/signUp",
-  async ({ formData, navigate }, { rejectWithValue, dispatch }) => {
+  async ({ formData, navigate }, { rejectWithValue }) => {
     try {
       const res = await axios.post("/api/signUp", formData);
       const token = res.data.token;
@@ -22,7 +22,7 @@ export const signupUser = createAsyncThunk(
 
 export const signInUser = createAsyncThunk(
   "user/signIn",
-  async ({ formData, navigate }, { rejectWithValue, dispatch }) => {
+  async ({ formData, navigate }, { rejectWithValue}) => {
     try {
       const res = await axios.post("/api/signIn", formData);
       const token = res.data.token;

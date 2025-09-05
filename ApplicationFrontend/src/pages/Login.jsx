@@ -16,6 +16,8 @@ const Login = () => {
   const handleSignIn = (e) => {
     e.preventDefault();
     dispatch(signInUser({ formData, navigate }));
+    console.log(errors);
+    
   };
   return (
     <div className="bg-slate-100 min-h-screen pb-9 pt-8">
@@ -83,6 +85,12 @@ const Login = () => {
             <span className="text-left text-error ml-2 text-[12px]">
               {errors.signin.password}
             </span>
+          )}
+
+          {errors?.signin?.general && (
+            <p className="text-left text-red-600 ml-2 text-[16px]">
+              {errors?.signin?.general}
+            </p>
           )}
 
           <button
