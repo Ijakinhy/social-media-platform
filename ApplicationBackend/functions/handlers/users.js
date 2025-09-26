@@ -46,18 +46,15 @@ exports.signUpUser = async (req, res) => {
       return res.status(400).json(errors);
     }
 
-    const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`;a
-    const userDoc = await db.doc(`/users/${newUser.handle}`).get();
-    if (userDoc.exists) {
-      return res.status(400).json({ general: "User already exists." });
-    } else {
+    const signUpUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`;
+  
       const response = await axios.post(signUpUrl, {
         email: newUser.email,
         password: newUser.password,
         returnSecureToken: true,
       });
 
-      db.doc(`/users/${newUser.handle}`).set({
+      db.doc(`/users/${response.data.localId}`).create({
         email: newUser.email,
         handle: newUser.handle,
         userId: response.data.localId,
@@ -65,15 +62,20 @@ exports.signUpUser = async (req, res) => {
         lastName: newUser.lastName,
         telephoneNumber: newUser.telephoneNumber,
         joinedAt: new Date().toISOString(),
+        blocked:[]
       });
+      db.doc(`/userChats/${response.data.localId}`).set({
+        chats: [],
+
+      })
       return res.status(201).json({
         email: newUser.email,
         password: newUser.password,
         token: response.data.idToken,
         userId: response.data.localId,
       });
-    }
   } catch (error) {
+    console.log(error);
     if (
       error.response &&
       error.response.data.error.message === "EMAIL_EXISTS"
@@ -219,7 +221,6 @@ exports.getAuthenticatedUsed = async (req, res) => {
       .get();
     userData.credentials = userSnap.data();
     userData.notifications = [];
-
     if (!notificationSnap.empty) {
       notificationSnap.forEach((doc) => {
         userData.notifications.push({

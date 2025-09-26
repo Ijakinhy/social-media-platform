@@ -1,7 +1,14 @@
 const { db } = require("../utils/admin");
 exports.createChat = async (req, res) => {
   try {
-    await db.doc(`/chats/${req.user.handle}`).set({ messages: [] });
+    const  chatDocRef = db.collection("chats").doc();
+    const userData =  (await db.doc(`/users/${req.user.handle}`).get()).data();
+    const userChatDocRef  =  db.collection("chats").doc(userData.userId);
+    await db.doc(`/chats`).set({ messages: [] });
+    chatDocRef.create({
+      createdAt: new Date().toISOString(),
+      messages: [],
+    })
     res.json({ message: "Chat created successfully." });
   } catch (error) {
     console.error(error);
@@ -10,42 +17,14 @@ exports.createChat = async (req, res) => {
 };
 
 exports.sendMessage = async (req, res) => {
-  const newMessage = {
-    text: req.body.text,
-    isSeen: false,
-    recipient: req.params.recipient,
-    updatedAt: new Date().toISOString(),
-    sender: req.user.handle,
-  };
-  const chatsRefId = await db
-    .collection("chats")
-    .doc(req.params.recipient)
-    .collection("messages")
-    .get();
-
-  try {
-    if (!newMessage.text) {
-      return res.status(400).json({ error: "empty message" });
-    }
-    if (!newMessage.recipient) {
-      return res.status(400).json({ error: "recipient is required" });
-    }
-    console.log(chatsRefId.size);
-
-    const messageRef = await db
-      .collection("chats")
-      .doc(req.user.handle)
-      .collection("messages")
-      .add(newMessage);
-
-    return res.status(201).json({
-      ...newMessage,
-      messageId: messageRef.id,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
+ try {
+  const chatDocRef = db.collection("chats").doc()
+  
+ } catch (error) {
+  console.log(error);
+  
+  
+ }
 };
 
 exports.markMessageSeen = async (req, res) => {

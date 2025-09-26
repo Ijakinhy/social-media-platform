@@ -24,7 +24,7 @@ module.exports = async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    req.user.handle = userRef.docs[0].data().handle;
+    req.user.handle = userRef.docs[0].data().userId;
     req.user.profileImage = userRef.docs[0].data().profileImage;
 
     return next();

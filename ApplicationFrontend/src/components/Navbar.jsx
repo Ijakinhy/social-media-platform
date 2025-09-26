@@ -110,8 +110,8 @@ const Navbar = () => {
 
                 {isChatsOpen && (
                   <div
-                    className={`absolute  -right-[5rem]        
-          bg-bgCard overflow-y-scroll h-[100vh] rounded-sm  w-[21rem] p-2 mr-3 shadow-2xl `}
+                    className={`fixed  -right-[7px]       
+          bg-bgCard overflow-y-scroll h-[100vh] rounded-sm  w-[21rem] p-2 shadow-2xl`}
                   >
                     <Chats />
                   </div>
