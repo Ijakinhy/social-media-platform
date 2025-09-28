@@ -40,6 +40,7 @@ const PrivateRouter = React.memo(({ authenticated }) => {
       }
     }
   }, [localStorage.token]);
+  
 
   return token ? (
     <>

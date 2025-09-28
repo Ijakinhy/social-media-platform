@@ -84,40 +84,6 @@ const Scream = ({ scream }) => {
       notificationCollection,
       where("type", "in", ["like", "comment"])
     );
-    let isInitialSnapNotifications = true;
-
-    const unsubscribeNotification = onSnapshot(
-      notificationQuery,
-      (snapshot) => {
-        if (isInitialSnapNotifications) {
-          isInitialSnapNotifications = false;
-          return;
-        }
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            const newNotification = {
-              ...change.doc.data(),
-              notificationId: change.doc.id,
-            };
-            if (newNotification.recipient === credentials.handle) {
-              dispatch(addLikeNotification(newNotification));
-            }
-          } else if (change.type === "removed") {
-            const notificationToBeRemoved = {
-              ...change.doc.data(),
-              notificationId: change.doc.id,
-            };
-            if (
-              notificationToBeRemoved.recipient === credentials.handle &&
-              notificationToBeRemoved.type === "like"
-            ) {
-              dispatch(deleteNotificationOnUnlike(notificationToBeRemoved));
-            }
-          }
-        });
-      }
-    );
-
     // subscribe to  scream collection
     let screamCountLikeAndCountStarts = true;
     const unsubscribeScream = onSnapshot(
@@ -149,7 +115,6 @@ const Scream = ({ scream }) => {
     );
 
     return () => {
-      unsubscribeNotification();
       unsubscribeScream();
     };
   }, [dispatch, likeCount]);

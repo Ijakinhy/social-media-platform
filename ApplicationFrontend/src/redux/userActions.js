@@ -48,7 +48,7 @@ export const getAuthenticatedUser = createAsyncThunk(
       const userRes = (await axios.get("/api/user")).data;
       const screamRes = (await axios.get("/api/screams")).data;
 
-      // console.log({ userRes, screamRes });
+      console.log({ userRes, screamRes });
 
       return {
         user: userRes,

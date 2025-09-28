@@ -8,25 +8,16 @@ import {
   query,
   updateDoc,
 } from "firebase/firestore";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AiOutlineSend } from "react-icons/ai";
+import { IoCheckmarkDoneOutline, IoClose } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import CreateScream from "../components/CreateScream";
-import Navbar from "../components/Navbar";
 import Profile from "../components/Profile";
 import Scream from "../components/Scream";
 import { db } from "../firebase";
-import { getAuthenticatedUser } from "../redux/userActions";
-import { addNewScream } from "../redux/userSlice";
-import Notification from "../components/Notification";
-import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
-import axios from "axios";
-import { AiOutlineSend } from "react-icons/ai";
-import jakinImg from "../images/jakin.jpg";
-import { IoClose } from "react-icons/io5";
-import { IoCheckmarkDoneOutline } from "react-icons/io5";
-import { useClickOutside } from "../utils/hooks";
 import { setIsMessageModelOpen } from "../redux/chatSlice";
+import { addNewScream } from "../redux/userSlice";
 const Home = () => {
   const dispatch = useDispatch();
       const [openEmoji, setOpenEmoji] = useState(false);

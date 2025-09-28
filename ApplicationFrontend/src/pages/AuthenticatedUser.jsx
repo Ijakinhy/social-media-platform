@@ -17,8 +17,7 @@ const AuthenticatedUser = () => {
 
   useEffect(() => {
     dispatch(fetchUserDetails(handle));
-  }, [handle]);
-
+  }, [handle]);  
   return (
     <>
       {!userData.user ? (

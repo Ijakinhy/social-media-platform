@@ -134,7 +134,7 @@ exports.getUserData = async (req, res) => {
 
     const screamsSnap = await db
       .collection("screams")
-      .where("userHandle", "==", handle)
+      .where("userHandle", "==", req.authUser.handle)
       .orderBy("createdAt", "desc")
       .get();
     userData.screams = [];
@@ -179,9 +179,10 @@ exports.getUserDetails = async (req, res) => {
     let authUserDetails = {};
 
     const userSnap = await db.doc(`/users/${req.params.handle}`).get();
+    
     const screamsSnap = await db
       .collection("screams")
-      .where("userHandle", "==", req.params.handle)
+      .where("userHandle", "==", req.authUser.handle)
       .orderBy("createdAt", "desc")
       .get();
 
@@ -211,12 +212,12 @@ exports.getAuthenticatedUsed = async (req, res) => {
     const userSnap = await db.doc(`/users/${req.user.handle}`).get();
     const notificationSnap = await db
       .collection("notifications")
-      .where("recipient", "==", req.user.handle)
+      .where("recipient", "==", req.authUser.handle)
       .where("type", "in", ["like", "comment"])
       .get();
     const messagesNotSnap = await db
       .collection("notifications")
-      .where("recipient", "==", req.user.handle)
+      .where("recipient", "==", req.authUser.handle)
       .where("type", "==", "message")
       .get();
     userData.credentials = userSnap.data();
@@ -244,7 +245,7 @@ exports.getAuthenticatedUsed = async (req, res) => {
     userData.likes = [];
     const likesSnap = await db
       .collection("likes")
-      .where("userHandle", "==", req.user.handle)
+      .where("userHandle", "==", req.authUser.handle)
       .get();
 
     if (!likesSnap.empty) {

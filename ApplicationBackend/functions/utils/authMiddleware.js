@@ -23,7 +23,7 @@ module.exports = async (req, res, next) => {
     if (userRef.empty) {
       return res.status(404).json({ error: "User not found" });
     }
-
+    req.authUser = userRef.docs[0].data();
     req.user.handle = userRef.docs[0].data().userId;
     req.user.profileImage = userRef.docs[0].data().profileImage;
 

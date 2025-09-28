@@ -32,7 +32,7 @@ exports.getAllScreams = async (req, res) => {
 exports.postOneScream = async (req, res) => {
   const newScream = {
     createdAt: new Date().toISOString(),
-    userHandle: req.user.handle,
+    userHandle: req.authUser.handle,
     profileImage: req.user.profileImage,
     likeCount: 0,
     commentCount: 0,
@@ -66,7 +66,7 @@ exports.postOneScream = async (req, res) => {
     file.pipe(fs.createWriteStream(filepath));
     hasImage = true;
   });
-
+ console.log({storege:process.env.FIREBASE_STORAGE_BUCKET}) 
   bb.on("finish", async () => {
     try {
       if (hasImage) {
@@ -81,10 +81,10 @@ exports.postOneScream = async (req, res) => {
               },
             },
           });
+
         imageUrl = `http://127.0.0.1:9199/v0/b/${firebaseConfig.storageBucket}/o/${imageFilename}?alt=media`;
         newScream.screamImage = imageUrl;
       }
-
       if (!hasDescription && !hasImage) {
         return res.status(400).json({
           message: "At least one of 'description' or 'image' must be provided",
@@ -112,7 +112,7 @@ exports.addCommentScream = async (req, res) => {
     return res.status(400).json({ error: "must not be empty." });
   }
   const newComment = {
-    userHandle: req.user.handle,
+    userHandle: req.authUser.handle,
     commentText: req.body.commentText,
     createdAt: new Date().toISOString(),
     screamId: req.params.screamId,
@@ -148,14 +148,14 @@ exports.likeScream = async (req, res) => {
       createdAt: new Date().toISOString(),
       screamId: req.params.screamId,
       profileImage: req.user.profileImage,
-      userHandle: req.user.handle,
+      userHandle: req.authUser.handle,
     };
     const screamDoc = db.doc(`/screams/${req.params.screamId}`);
     const screamSnap = await screamDoc.get();
     const likeSnap = await db
       .collection("likes")
       .where("screamId", "==", req.params.screamId)
-      .where("userHandle", "==", req.user.handle)
+      .where("userHandle", "==", req.authUser.handle)
       .get();
     if (!screamSnap.exists) {
       return res.status(404).json({ error: "Scream not found." });
@@ -184,13 +184,7 @@ exports.unlikeScream = async (req, res) => {
     const likeSnap = await db
       .collection("likes")
       .where("screamId", "==", req.params.screamId)
-      .where("userHandle", "==", req.user.handle)
-      .get();
-    const notificationsSnap = await db
-      .collection("notifications")
-      .where("sender", "==", req.user.handle)
-      .where("screamId", "==", req.params.screamId)
-      .where("type", "==", "like")
+      .where("userHandle", "==", req.authUser.handle)
       .get();
     if (!screamSnap.exists) {
       return res.status(404).json({ error: "Scream not found." });

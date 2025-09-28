@@ -36,7 +36,7 @@ const Profile = ({ credentials, page }) => {
         }    sm:w-[20rem]  sm:mx-2  mr-8 h-full`}
       >
         {page === "home" ? (
-          <Link to={`/user/${credentials?.handle}`}>
+          <Link to={`/user/${credentials?.userId}`}>
             <div className="w-full relative glass h-24">
               <img
                 className="absolute left-1/2 top-20 w-28 h-28 rounded-full transform -translate-x-1/2 -translate-y-1/2 object-cover"
@@ -75,7 +75,7 @@ const Profile = ({ credentials, page }) => {
 
         <div className=" mt-11 p-2 ">
           {page === "home" ? (
-            <Link to={`/user/${credentials?.handle}`}>
+            <Link to={`/user/${credentials?.userId}`}>
               <h2 className="text-center  mr-auto ml-auto hover:underline cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
                 {`${credentials.handle} ${credentials.lastName}`}
               </h2>

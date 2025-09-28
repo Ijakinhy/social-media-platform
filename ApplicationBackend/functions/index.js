@@ -1,3 +1,4 @@
+require('dotenv').config(); 
 const {db} = require("./utils/admin");
 const functions = require("firebase-functions");
 const express = require("express");
@@ -34,6 +35,8 @@ const {
   onDocumentDeleted,
 } = require("firebase-functions/v2/firestore");
 const app = express();
+
+// 
 
 app.get("/screams", getAllScreams);
 app.get("/scream/:screamId", authMiddleware, getOneScreamDetail);

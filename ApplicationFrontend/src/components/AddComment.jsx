@@ -222,12 +222,12 @@ const AddComment = ({ openModal, setOpenModal }) => {
             </div>
             {/* center  */}
             <div className="flex flex-col  ">
-              {comments.map((comment) => (
+              {comments.map((comment,index) => (
                 <div
                   className={`flex mb-2.5  ${
                     comment.userHandle === credentials.handle ? "ml-16" : "ml-3"
                   }  `}
-                  key={comment.commentId}
+                  key={index}
                 >
                   <div className="w-10 mr-3">
                     <img

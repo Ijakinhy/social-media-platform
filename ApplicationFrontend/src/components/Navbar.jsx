@@ -9,11 +9,13 @@ import logoutIcon from "../images/logOutIcon.png";
 import { readNotifications } from "../redux/userActions";
 import NotIcon from "../utils/NotIcon";
 import Notification from "./Notification";
-import { toggleNotificationModal } from "../redux/userSlice";
+import { addLikeNotification, deleteNotificationOnUnlike, toggleNotificationModal } from "../redux/userSlice";
 import axios from "axios";
 import { useClickOutside } from "../utils/hooks";
 import Chats from "./Chats";
 import { setIsChatsOpen } from "../redux/chatSlice";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../firebase";
 const Navbar = () => {
   const {
     isOpen,
@@ -41,6 +43,50 @@ const Navbar = () => {
     }
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+      /// event listener for created notifications
+      const notificationCollection = collection(db, "notifications");
+      const notificationQuery = query(
+        notificationCollection,
+        where("type", "in", ["like", "comment"])
+      );
+      let isInitialSnapNotifications = true;
+  
+      const unsubscribeNotification = onSnapshot(
+        notificationQuery,
+        (snapshot) => {
+          if (isInitialSnapNotifications) {
+            isInitialSnapNotifications = false;
+            return;
+          }
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const newNotification = {
+                ...change.doc.data(),
+                notificationId: change.doc.id,
+              };
+              if (newNotification.recipient === credentials.handle) {
+                dispatch(addLikeNotification(newNotification));
+              }
+            } else if (change.type === "removed") {
+              const notificationToBeRemoved = {
+                ...change.doc.data(),
+                notificationId: change.doc.id,
+              };
+  
+              if (
+                notificationToBeRemoved.recipient === credentials.handle && 
+                notificationToBeRemoved.type === "like"
+              ) {
+                dispatch(deleteNotificationOnUnlike(notificationToBeRemoved));
+              }
+            }
+          });
+        }
+      );
+      return () => unsubscribeNotification();
+    }, []);
 
   useEffect(() => {
     if (notReadNots.length > 0) {
