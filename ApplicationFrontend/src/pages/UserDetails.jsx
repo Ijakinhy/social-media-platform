@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../firebase";
 import { addNewScream } from "../redux/userSlice";
+import CreateScream from "../components/CreateScream";
 
 const UserDetails = () => {
   const { handle } = useParams();
@@ -67,6 +68,10 @@ const UserDetails = () => {
               {/* /// profile  */}
               <Profile credentials={userData.user} page="user" />
               <div className="">
+             {userData.user && userData.user.handle === credentials.handle &&(
+              <CreateScream />
+            )}
+
                 {/* ///  scream  Card */}
                 {memoiseUserScreams.map((scream) => (
                   <Scream key={scream.screamId} scream={scream} />

@@ -69,6 +69,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
     profileImage,
     commentCount,
     screamId,
+    postedBy
   } = scream;
   const isScreamAlreadyLiked = likes.some(
     (like) =>
@@ -96,8 +97,6 @@ const AddComment = ({ openModal, setOpenModal }) => {
     const formData = new FormData(e.target);
     const commentText = formData.get("commentText");
     dispatch(commentOnScream({ screamId, commentText }));
-    console.log(comments);
-
     e.target.reset();
   };
 
@@ -118,7 +117,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const newComment = { ...change.doc.data(), commentId: change.doc.id };
-          if (newComment.userHandle !== credentials.handle) {
+          if (newComment.postedBy !== credentials.handle) {
             dispatch(updateComments(newComment));
           }
         }
@@ -135,7 +134,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
         <div className="modal-box z-0 bg-bgCard px-0 py-0 max-w-3xl rounded-md h-[100vh] custom-scrollbar">
           <div className=" flex items-center px-5 py-2   justify-between sticky top-0 bg-bgCard z-10">
             <h2 className="text-xl   font-semibold text-gray-200 ml-auto mr-auto ">
-              {userHandle}'s post
+              {postedBy}'s post
             </h2>
             <label
               className="  bg-gray-500/30 py-1 px-1 rounded-full  text-gray-200 "
@@ -157,7 +156,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
                 />
                 <div className="">
                   <h3 className="text-lg leading-3 text-white tracking-tight font-medium">
-                    {userHandle}
+                    {postedBy}
                   </h3>
                   <span className="text-[13px] text-gray-500 tracking-normal font-bold ">
                     {dayjs(createdAt).fromNow(true)}
@@ -225,7 +224,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
               {comments.map((comment,index) => (
                 <div
                   className={`flex mb-2.5  ${
-                    comment.userHandle === credentials.handle ? "ml-16" : "ml-3"
+                    comment.userHandle === credentials.userId ? "ml-16" : "ml-3"
                   }  `}
                   key={index}
                 >
@@ -239,7 +238,7 @@ const AddComment = ({ openModal, setOpenModal }) => {
                   <div className="flex flex-col">
                     <div className="max-w-[40vw] pl-3 flex  flex-col bg-gray-400/10 text-gray-100 pr-8 mr-2 py-[1px] rounded-2xl">
                       <strong className="text-sm ml- tracking-wider capitalize">
-                        {comment.userHandle}
+                        {comment.postedBy}
                       </strong>
                       <p className="text-[15px] max font-normal font-afacad">
                         {comment.commentText}

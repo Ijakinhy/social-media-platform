@@ -32,8 +32,9 @@ exports.getAllScreams = async (req, res) => {
 exports.postOneScream = async (req, res) => {
   const newScream = {
     createdAt: new Date().toISOString(),
-    userHandle: req.authUser.handle,
+    userHandle: req.authUser.userId,
     profileImage: req.user.profileImage,
+    postedBy: req.authUser.handle,
     likeCount: 0,
     commentCount: 0,
   };
@@ -112,7 +113,8 @@ exports.addCommentScream = async (req, res) => {
     return res.status(400).json({ error: "must not be empty." });
   }
   const newComment = {
-    userHandle: req.authUser.handle,
+    userHandle: req.authUser.userId,
+    postedBy: req.authUser.handle,
     commentText: req.body.commentText,
     createdAt: new Date().toISOString(),
     screamId: req.params.screamId,
@@ -148,14 +150,16 @@ exports.likeScream = async (req, res) => {
       createdAt: new Date().toISOString(),
       screamId: req.params.screamId,
       profileImage: req.user.profileImage,
-      userHandle: req.authUser.handle,
+      userHandle: req.authUser.userId,
+      postedBy: req.authUser.handle,
+      
     };
     const screamDoc = db.doc(`/screams/${req.params.screamId}`);
     const screamSnap = await screamDoc.get();
     const likeSnap = await db
       .collection("likes")
       .where("screamId", "==", req.params.screamId)
-      .where("userHandle", "==", req.authUser.handle)
+      .where("userHandle", "==", req.authUser.userId)
       .get();
     if (!screamSnap.exists) {
       return res.status(404).json({ error: "Scream not found." });
@@ -184,7 +188,7 @@ exports.unlikeScream = async (req, res) => {
     const likeSnap = await db
       .collection("likes")
       .where("screamId", "==", req.params.screamId)
-      .where("userHandle", "==", req.authUser.handle)
+      .where("userHandle", "==", req.authUser.userId)
       .get();
     if (!screamSnap.exists) {
       return res.status(404).json({ error: "Scream not found." });

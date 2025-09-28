@@ -15,9 +15,7 @@ const Login = () => {
 
   const handleSignIn = (e) => {
     e.preventDefault();
-    dispatch(signInUser({ formData, navigate }));
-    console.log(errors);
-    
+    dispatch(signInUser({ formData, navigate }));    
   };
   return (
     <div className="bg-slate-100 min-h-screen pb-9 pt-8">

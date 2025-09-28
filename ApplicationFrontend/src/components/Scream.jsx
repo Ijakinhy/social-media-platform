@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
-import { AiOutlineComment, AiOutlineLike, AiFillLike } from "react-icons/ai";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
+import React, { useEffect, useRef, useState } from "react";
+import { AiFillLike, AiOutlineComment, AiOutlineLike } from "react-icons/ai";
 import { BiDotsHorizontalRounded } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useSearchParams } from "react-router-dom";
+import { db } from "../firebase";
 import {
   fetchScreamDetails,
   likeScream,
   unlikeScream,
 } from "../redux/userActions";
-import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
-import { db } from "../firebase";
-import AddComment from "./AddComment";
 import {
-  addLikeNotification,
-  deleteNotificationOnUnlike,
   updateCommentCount,
   updateLikeCount,
   updateProfileImage,
 } from "../redux/userSlice";
-import { Link } from "react-router-dom";
+import AddComment from "./AddComment";
 
 const Scream = ({ scream }) => {
   const dispatch = useDispatch();
@@ -36,6 +34,7 @@ const Scream = ({ scream }) => {
     profileImage,
     commentCount,
     screamId,
+    postedBy,
   } = scream;
   dayjs.extend(relativeTime);
   dayjs.extend(updateLocale);
@@ -62,7 +61,7 @@ const Scream = ({ scream }) => {
   });
   const isScreamAlreadyLiked = likes.some(
     (like) =>
-      like?.screamId === screamId && like?.userHandle === credentials.handle
+      like?.screamId === screamId && like?.userHandle === credentials.userId
   );
 
   const toggleLikeBtn = !!isScreamAlreadyLiked ? (
@@ -118,9 +117,30 @@ const Scream = ({ scream }) => {
       unsubscribeScream();
     };
   }, [dispatch, likeCount]);
+  // let searchParams
+  // useEffect(()=> {
+  //   searchParams = new URLSearchParams(window.location.search);
+  // }, [])
+    const [searchParams] = useSearchParams();
+  const searchScream = searchParams.get("scream");
+const initialRender = useRef(true);
+
+useEffect(() => {
+  if (initialRender.current) {
+    initialRender.current = false;
+    return;
+  }
+
+  if (searchScream === screamId) {
+    setOpenModal(true);
+    dispatch(fetchScreamDetails(searchScream));
+  }
+}, [searchScream]);
+
 
   const handleOPenModal = () => {
     setOpenModal(true);
+
     dispatch(fetchScreamDetails(screamId));
   };
 
@@ -140,7 +160,7 @@ const Scream = ({ scream }) => {
             <div className="">
               <Link to={`/${userHandle}`}>
                 <h3 className="text-lg leading-3 text-white tracking-tight font-medium">
-                  {userHandle}
+                  {postedBy}
                 </h3>
               </Link>
               <span className="text-[13px] text-gray-500 tracking-normal font-bold ">

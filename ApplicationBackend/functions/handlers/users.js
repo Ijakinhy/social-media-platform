@@ -130,11 +130,10 @@ exports.getUserData = async (req, res) => {
     const userSnap = await db.doc(`/users/${handle}`).get();
     if (userSnap.exists) {
       userData.user = userSnap.data();
-    }
-
+    }    
     const screamsSnap = await db
       .collection("screams")
-      .where("userHandle", "==", req.authUser.handle)
+      .where("userHandle", "==", req.params.handle)
       .orderBy("createdAt", "desc")
       .get();
     userData.screams = [];
@@ -182,7 +181,7 @@ exports.getUserDetails = async (req, res) => {
     
     const screamsSnap = await db
       .collection("screams")
-      .where("userHandle", "==", req.authUser.handle)
+      .where("userHandle", "==", req.authUser.userId)
       .orderBy("createdAt", "desc")
       .get();
 
@@ -245,7 +244,7 @@ exports.getAuthenticatedUsed = async (req, res) => {
     userData.likes = [];
     const likesSnap = await db
       .collection("likes")
-      .where("userHandle", "==", req.authUser.handle)
+      .where("userHandle", "==", req.authUser.userId)
       .get();
 
     if (!likesSnap.empty) {
@@ -272,19 +271,19 @@ exports.uploadProfilePic = async (req, res) => {
 
   const screamsSnap = await db
     .collection("screams")
-    .where("userHandle", "==", req.user.handle)
+    .where("userHandle", "==", req.authUser.userId)
     .get();
   const commentsSnap = await db
     .collection("comments")
-    .where("userHandle", "==", req.user.handle)
+    .where("userHandle", "==", req.authUser.userId)
     .get();
   const likesSnap = await db
     .collection("likes")
-    .where("userHandle", "==", req.user.handle)
+    .where("userHandle", "==", req.authUser.userId)
     .get();
   const notificationsSnap = await db
     .collection("notifications")
-    .where("userHandle", "==", req.user.handle)
+    .where("userHandle", "==", req.authUser.userId)
     .get();
 
   let imageToBeUploaded;
@@ -355,7 +354,7 @@ exports.markNotificationRead = async (req, res) => {
     const notificationsSnap = await db
       .collection("notifications")
       .where("type", "in", ["like", "comment"])
-      .where("recipient", "==", req.user.handle)
+      .where("recipient", "==", req.authUser.handle)
       .get();
 
     if (notificationsSnap.empty)

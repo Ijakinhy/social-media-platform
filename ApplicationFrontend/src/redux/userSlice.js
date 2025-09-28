@@ -245,10 +245,7 @@ const userSlice = createSlice({
         state.errors = {};
       })
       .addCase(getAuthenticatedUser.fulfilled, (state, action) => {
-            state.loading.app = false;
-            console.log(state.notifications);
-            
-
+        state.loading.app = false;
         state.credentials = action.payload.user.credentials;
         state.notifications = action.payload.user.notifications;
         state.messageNotifications = action.payload.user.messageNotifications;

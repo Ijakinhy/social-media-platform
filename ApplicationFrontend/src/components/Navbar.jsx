@@ -67,6 +67,8 @@ const Navbar = () => {
                 notificationId: change.doc.id,
               };
               if (newNotification.recipient === credentials.handle) {
+                // console.log("notification added");
+                
                 dispatch(addLikeNotification(newNotification));
               }
             } else if (change.type === "removed") {
@@ -79,6 +81,7 @@ const Navbar = () => {
                 notificationToBeRemoved.recipient === credentials.handle && 
                 notificationToBeRemoved.type === "like"
               ) {
+              // console.log("notification removed");
                 dispatch(deleteNotificationOnUnlike(notificationToBeRemoved));
               }
             }
@@ -86,7 +89,7 @@ const Navbar = () => {
         }
       );
       return () => unsubscribeNotification();
-    }, []);
+    }, [dispatch, credentials.handle, notifications]);
 
   useEffect(() => {
     if (notReadNots.length > 0) {
@@ -232,7 +235,7 @@ const Navbar = () => {
                       </div>
 
                       <div className="text-left ml-2 ">
-                        <Link to={`/user/${credentials.handle}`}>
+                        <Link to={`/user/${credentials.userId}`}>
                           <h3 className="text-gray-200 capitalize text-sm leading-none ">
                             View profile
                           </h3>

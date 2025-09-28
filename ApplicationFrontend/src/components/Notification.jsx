@@ -45,7 +45,7 @@ const Notification = () => {
 
         return (
           <Link
-            to={`/${screamId}`}
+            to={`/?scream=${screamId}`}
             key={notificationId}
             className={`flex  hover:bg-accent/5  pl-2  mb-6 cursor-pointer  py-2 rounded-md  ${
               !read && "bg-gray-100/15"

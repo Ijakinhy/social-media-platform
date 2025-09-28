@@ -47,9 +47,6 @@ export const getAuthenticatedUser = createAsyncThunk(
     try {
       const userRes = (await axios.get("/api/user")).data;
       const screamRes = (await axios.get("/api/screams")).data;
-
-      console.log({ userRes, screamRes });
-
       return {
         user: userRes,
         screams: screamRes,
@@ -151,13 +148,11 @@ export const fetchUserDetails = createAsyncThunk(
   "user/details",
   async (handle) => {
     const res = await axios.get(`/api/user/${handle}`);
-
     return res.data;
   }
 );
 
 //  add user details
-
 export const addUserDetails = createAsyncThunk(
   "/user/addUserDetails",
   async (formData) => {

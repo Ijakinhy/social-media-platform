@@ -104,8 +104,8 @@ exports.createLikeNotifications = onDocumentCreated(
       // //  create notification
       if (likes.userHandle !== screamSnap.userHandle) {
         await db.collection("notifications").add({
-          recipient: screamSnap.userHandle,
-          sender: likes.userHandle,
+          recipient: screamSnap.postedBy,
+          sender: likes.postedBy,
           type: "like",
           createdAt: new Date().toISOString(),
           read: false,
@@ -133,7 +133,7 @@ exports.deleteLikeNotification = onDocumentDeleted(
       //
       const notificationSnap = await db
           .collection("notifications")
-          .where("sender", "==", data.userHandle)
+          .where("sender", "==", data.postedBy)
           .where("screamId", "==", data.screamId)
           .where("type", "==", "like")
           .get();
@@ -163,8 +163,8 @@ exports.createCommentNotifications = onDocumentCreated(
       ).data();
       if (event.data.data().userHandle !== screamSnap.userHandle) {
         await db.collection("notifications").add({
-          recipient: screamSnap.userHandle,
-          sender: comments.userHandle,
+          recipient: screamSnap.postedBy,
+          sender: comments.postedBy,
           type: "comment",
           createdAt: new Date().toISOString(),
           read: false,
