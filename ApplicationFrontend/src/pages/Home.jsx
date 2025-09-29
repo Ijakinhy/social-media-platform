@@ -18,6 +18,9 @@ import Scream from "../components/Scream";
 import { db } from "../firebase";
 import { setIsMessageModelOpen } from "../redux/chatSlice";
 import { addNewScream } from "../redux/userSlice";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import updateLocale from "dayjs/plugin/updateLocale";
 const Home = () => {
   const dispatch = useDispatch();
       const [openEmoji, setOpenEmoji] = useState(false);
@@ -105,6 +108,30 @@ const Home = () => {
     }
   };
 
+  dayjs.extend(relativeTime);
+    dayjs.extend(updateLocale);
+    dayjs.updateLocale("en", {
+      relativeTime: {
+        future: "in %s",
+        past: "%s ",
+        s: "a few seconds ",
+        ss: "%d sec",
+        m: "1 min ",
+        mm: "%dmin ",
+        h: "1h ",
+        hh: "%dh ",
+        d: "1d ",
+        dd: "%dd ",
+        M: "1m ",
+        MM: "%dm ",
+        y: "1d",
+        yy: (value) => {
+          const yearsAgo = dayjs().subtract(value, "year");
+          return yearsAgo.format("MMMM D, YYYY");
+        },
+      },
+    });
+
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -189,7 +216,7 @@ const Home = () => {
                       />
                     </div>
                   </div>
-                  <h5 className="text-gray-300 text-lg ">{user.handle + " " + user.lastName}</h5>
+                  <h5 className="text-gray-300 text-lg ">{user.handle}</h5>
                 </div>
                 <button
                   className="px-1 py-1 rounded-full hover:bg-accent transition-all duration-300"
@@ -224,12 +251,12 @@ const Home = () => {
                            {
                             message.senderId === currentUser.userId ? (
                                <div className="flex justify-end mt-1 gap-1 items-center  ">
-                          <small className="text-white ">07:20AM</small>
+                          <small className="text-white ">{dayjs(message.createdAt).fromNow(true)}</small>
                           <IoCheckmarkDoneOutline className={`text-lg ${chat.isSeen? "text-green-500" : "text-white"}`} />
                         </div>
                             ) : (
                               <small className="text-white float-left mt-1">
-                                07:20AM
+                                {dayjs(message.createdAt).fromNow(true)}
                               </small>
                             )
                            }

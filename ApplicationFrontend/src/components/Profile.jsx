@@ -77,12 +77,12 @@ const Profile = ({ credentials, page }) => {
           {page === "home" ? (
             <Link to={`/user/${credentials?.userId}`}>
               <h2 className="text-center  mr-auto ml-auto hover:underline cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
-                {`${credentials.handle} ${credentials.lastName}`}
+                {`${credentials.handle}`}
               </h2>
             </Link>
           ) : (
             <h2 className="text-center  mr-auto ml-auto cursor-pointer text-gray-300 font-medium tracking-wider capitalize">
-              {`${credentials.handle} ${credentials.lastName}`}
+              {credentials.handle}
             </h2>
           )}
 

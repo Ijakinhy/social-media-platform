@@ -5,6 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { db } from "../firebase";
 import { changeChat, setIsChatsOpen, setIsMessageModelOpen } from "../redux/chatSlice";
 import AddUserChat from "./AddUserChat";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import updateLocale from "dayjs/plugin/updateLocale";
 const Chats = () => {
   const dispatch = useDispatch();
   const [chats, setChats] = useState([]);
@@ -76,6 +79,30 @@ const Chats = () => {
   // console.log(chats);
   
           // console.log(chats[0].user.handle);
+ dayjs.extend(relativeTime);
+    dayjs.extend(updateLocale);
+    dayjs.updateLocale("en", {
+      relativeTime: {
+        future: "in %s",
+        past: "%s ",
+        s: "a few seconds ",
+        ss: "%d sec",
+        m: "1 min ",
+        mm: "%dmin ",
+        h: "1h ",
+        hh: "%dh ",
+        d: "1d ",
+        dd: "%dd ",
+        M: "1m ",
+        MM: "%dm ",
+        y: "1d",
+        yy: (value) => {
+          const yearsAgo = dayjs().subtract(value, "year");
+          return yearsAgo.format("MMMM D, YYYY");
+        },
+      },
+    });
+
 
   return (
     <>
@@ -119,10 +146,10 @@ const Chats = () => {
             )}
             <div className="flex  flex-col ml-3">
               <h5 className="text-gray-100 font-normal  capitalize m">
-                {chat.user.handle +  " " + chat.user.lastName}
+                {chat.user.handle}
               </h5>
               <p className="text-gray-300 text-sm -serif">
-                You: <span>{chat.lastMessage}</span> . 1w
+                You: <span>{chat.lastMessage}</span> . {dayjs(chat.updatedAt).fromNow(true)}
               </p>
             </div>
           </div>

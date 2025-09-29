@@ -56,10 +56,9 @@ exports.signUpUser = async (req, res) => {
 
       db.doc(`/users/${response.data.localId}`).create({
         email: newUser.email,
-        handle: newUser.handle,
+        handle: `${newUser.handle} ${newUser.lastName}`,
         userId: response.data.localId,
         profileImage: newUser.profileImage,
-        lastName: newUser.lastName,
         telephoneNumber: newUser.telephoneNumber,
         joinedAt: new Date().toISOString(),
         blocked:[]
