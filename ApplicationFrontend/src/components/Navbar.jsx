@@ -13,8 +13,8 @@ import { addLikeNotification, deleteNotificationOnUnlike, toggleNotificationModa
 import axios from "axios";
 import { useClickOutside } from "../utils/hooks";
 import Chats from "./Chats";
-import { setIsChatsOpen } from "../redux/chatSlice";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { setIsChatsOpen, setUnreadChatsCount } from "../redux/chatSlice";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 const Navbar = () => {
   const {
@@ -28,6 +28,7 @@ const Navbar = () => {
   } = useClickOutside();
   const [alreadyNotRead, setAlreadyNotRead] = useState(false);
   const isChatsOpen = useSelector((state) => state.chats.isChatsOpen);
+  const unreadChatsCount = useSelector((state) => state.chats.unreadChatsCount);
 
   const { credentials, notifications } = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -91,6 +92,22 @@ const Navbar = () => {
       return () => unsubscribeNotification();
     }, [dispatch, credentials.handle, notifications]);
 
+  // Real-time listener for unread chats count (always active in Navbar)
+  useEffect(() => {
+    if (!credentials.userId) return;
+
+    const unsubscribeUserChats = onSnapshot(
+      doc(db, "userChats", credentials.userId),
+      (snapshot) => {
+        const chats = snapshot.data()?.chats || [];
+        const unreadCount = chats.filter((chat) => chat.isSeen === false).length;
+        dispatch(setUnreadChatsCount(unreadCount));
+      }
+    );
+
+    return () => unsubscribeUserChats();
+  }, [credentials.userId, dispatch]);
+
   useEffect(() => {
     if (notReadNots.length > 0) {
       setAlreadyNotRead(false);
@@ -151,9 +168,11 @@ const Navbar = () => {
                 >
                   <div className="indicator">
                     <FaFacebookMessenger className="text-xl  hover:text-white text-gray-300  " />
-                    <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
-                      1
-                    </span>
+                    {unreadChatsCount > 0 && (
+                      <span className=" rounded-full bg-[#cb112d] text-white  font-afacad font-bold px-1 text-[16px]   indicator-item">
+                        {unreadChatsCount}
+                      </span>
+                    )}
                   </div>
                 </button>
 

@@ -1,4 +1,5 @@
 import {
+  addDoc,
   arrayUnion,
   collection,
   doc,
@@ -6,9 +7,10 @@ import {
   onSnapshot,
   orderBy,
   query,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
 import { IoCheckmarkDoneOutline, IoClose } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,27 +18,19 @@ import CreateScream from "../components/CreateScream";
 import Profile from "../components/Profile";
 import Scream from "../components/Scream";
 import { db } from "../firebase";
-import { setIsMessageModelOpen } from "../redux/chatSlice";
+import { setIsMessageModelOpen, setChatId } from "../redux/chatSlice";
 import { addNewScream } from "../redux/userSlice";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocale from "dayjs/plugin/updateLocale";
+import axios from "axios";
 const Home = () => {
   const dispatch = useDispatch();
-      const [openEmoji, setOpenEmoji] = useState(false);
-  const [messages, setmessages] = useState({
-    messages:[],
-    createdAt: null
-  });
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [img, setImg] = useState({
-    file: null,
-    url: "",
-  });
   const app = useSelector((state) => state.user.loading.app);
   const screams = useSelector((state) => state.user.screams);
   const credentials = useSelector((state) => state.user.credentials);
-  const notifications = useSelector((state) => state.user.notifications);
   const isMessageModelOpen = useSelector(
     (state) => state.chats.isMessageModelOpen
   );
@@ -78,35 +72,45 @@ const Home = () => {
 
 
 
-  const endRef = useRef();
-  const { chatId, user,chat, isCurrentUserBlocked, isReceiverBlocked } = useSelector(
-    (state) => state.chats
-  );
+  const { chatId, user, isNewChat } = useSelector((state) => state.chats);
   const { credentials: currentUser } = useSelector((state) => state.user);
   
-  // useEffect(() => endRef.current.scrollIntoView({ behavior: "smooth" }), []);
+  // Listen to messages subcollection for real-time updates
   useEffect(() => {
-    if(!chatId) {
-      dispatch(setIsMessageModelOpen(false));
-      return
-    }     
-    const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
-      setmessages(res.data());
+    // For new chats (no chatId yet), just clear messages and keep modal open
+    if (!chatId) {
+      if (!isNewChat) {
+        dispatch(setIsMessageModelOpen(false));
+      }
+      setMessages([]);
+      return;
+    }
+
+    // Mark messages as seen when chat opens (for read receipts)
+    axios.post(`/api/chat/${chatId}/markSeen`).catch((err) => {
+      console.error("Error marking messages as seen:", err);
     });
-   
+
+    // Query messages subcollection ordered by createdAt
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    const messagesQuery = query(messagesRef, orderBy("createdAt", "asc"));
+
+    const unSub = onSnapshot(messagesQuery, (snapshot) => {
+      // Always rebuild full list to ensure isSeen updates are captured
+      const messagesList = [];
+      snapshot.forEach((doc) => {
+        messagesList.push({
+          messageId: doc.id,
+          ...doc.data(),
+        });
+      });
+      setMessages(messagesList);
+    });
+
     return () => {
       unSub();
     };
-    
-  }, [chatId])  
-  const handleImg = (e) => {
-    if (e.target.files[0]) {
-      setImg({
-        file: e.target.files[0],
-        url: URL.createObjectURL(e.target.files[0]),
-      });
-    }
-  };
+  }, [chatId, isNewChat, dispatch]);
 
   dayjs.extend(relativeTime);
     dayjs.extend(updateLocale);
@@ -133,43 +137,138 @@ const Home = () => {
     });
 
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (text === "") return;
-    let imgURL = null;
-    try {
+  // Helper function to create a new chat with first message
+  const createNewChatWithMessage = async (messageText, now, nowTimestamp) => {
+    // Create new chat document
+    const chatRef = doc(collection(db, "chats"));
+    const newChatId = chatRef.id;
 
-      await updateDoc(doc(db, "chats", chatId), {
-        messages: arrayUnion({
-          createdAt: new Date(),
-          text: text,
-          senderId: currentUser.userId,
+    await setDoc(chatRef, {
+      participants: [currentUser.userId, user.userId],
+      createdAt: now,
+      updatedAt: now,
+      lastMessage: {
+        text: messageText,
+        senderId: currentUser.userId,
+        createdAt: now,
+      },
+    });
+
+    // Create first message in subcollection
+    const messagesRef = collection(db, "chats", newChatId, "messages");
+    await addDoc(messagesRef, {
+      text: messageText,
+      senderId: currentUser.userId,
+      recipientId: user.userId,
+      createdAt: now,
+      isSeen: false,
+    });
+
+    // Create userChats entry for recipient
+    await setDoc(
+      doc(db, "userChats", user.userId),
+      {
+        chats: arrayUnion({
+          chatId: newChatId,
+          lastMessage: messageText,
+          recipientId: currentUser.userId,
+          recipientHandle: currentUser.handle,
+          recipientAvatar: currentUser.profileImage,
+          updatedAt: nowTimestamp,
+          isSeen: false,
         }),
-      });
-      const userIDs = [user.userId, currentUser.userId];
-      userIDs.forEach(async (id) => {
-        const userChatsRef = doc(db, "userChats", id);
-        const userChatsSnapShot = await getDoc(userChatsRef);
+      },
+      { merge: true }
+    );
 
-        if (userChatsSnapShot.exists()) {
-          const userChatsData = userChatsSnapShot.data();
+    // Create userChats entry for current user
+    await setDoc(
+      doc(db, "userChats", currentUser.userId),
+      {
+        chats: arrayUnion({
+          chatId: newChatId,
+          lastMessage: messageText,
+          recipientId: user.userId,
+          recipientHandle: user.handle,
+          recipientAvatar: user.profileImage,
+          updatedAt: nowTimestamp,
+          isSeen: true,
+        }),
+      },
+      { merge: true }
+    );
 
-          const chatIndex = userChatsData.chats.findIndex(
-            (item) => item.chatId === chatId
-          );
-          userChatsData.chats[chatIndex].lastMessage = text;
-          userChatsData.chats[chatIndex].isSeen =
-            id === currentUser.userId ? true : false;
-          userChatsData.chats[chatIndex].updatedAt = Date.now();
+    return newChatId;
+  };
+
+  // Helper function to add message to existing chat
+  const addMessageToExistingChat = async (currentChatId, messageText, now, nowTimestamp) => {
+    // Add message to subcollection
+    const messagesRef = collection(db, "chats", currentChatId, "messages");
+    await addDoc(messagesRef, {
+      text: messageText,
+      senderId: currentUser.userId,
+      recipientId: user.userId,
+      createdAt: now,
+      isSeen: false,
+    });
+
+    // Update chat document with lastMessage
+    await updateDoc(doc(db, "chats", currentChatId), {
+      lastMessage: {
+        text: messageText,
+        senderId: currentUser.userId,
+        createdAt: now,
+      },
+      updatedAt: now,
+    });
+
+    // Update userChats for both users
+    const userIDs = [user.userId, currentUser.userId];
+    for (const id of userIDs) {
+      const userChatsRef = doc(db, "userChats", id);
+      const userChatsSnapShot = await getDoc(userChatsRef);
+
+      if (userChatsSnapShot.exists()) {
+        const userChatsData = userChatsSnapShot.data();
+        const chatIndex = userChatsData.chats.findIndex(
+          (item) => item.chatId === currentChatId
+        );
+
+        if (chatIndex !== -1) {
+          userChatsData.chats[chatIndex].lastMessage = messageText;
+          userChatsData.chats[chatIndex].isSeen = id === currentUser.userId;
+          userChatsData.chats[chatIndex].updatedAt = nowTimestamp;
 
           await updateDoc(userChatsRef, {
             chats: userChatsData.chats,
           });
         }
-      });
+      }
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (text.trim() === "") return;
+
+    const now = new Date().toISOString();
+    const nowTimestamp = Date.now();
+    const messageText = text.trim();
+
+    try {
+      if (isNewChat && !chatId) {
+        // Create new chat with first message
+        const newChatId = await createNewChatWithMessage(messageText, now, nowTimestamp);
+        // Update Redux with the new chatId
+        dispatch(setChatId(newChatId));
+      } else {
+        // Add message to existing chat
+        await addMessageToExistingChat(chatId, messageText, now, nowTimestamp);
+      }
     } catch (error) {
       console.log(error.message);
-    }finally {
+    } finally {
       setText("");
     }
   };
@@ -204,9 +303,9 @@ const Home = () => {
 
           {/*   chats messages  */}
           {isMessageModelOpen && (
-            <div className="bg-bgCard flex  flex-col fixed bottom-0 right-24 xs:right-8 md:right-12 h-[30rem] w-[24rem] rounded-xl">
-              {/* //  message header  */}
-              <div className="p-2.5 flex items-center   justify-between ">
+            <div className="bg-bgCard flex flex-col fixed bottom-0 right-24 xs:right-8 md:right-12 h-[30rem] w-[24rem] rounded-xl overflow-hidden">
+              {/* //  message header - fixed at top */}
+              <div className="flex-shrink-0 p-2.5 flex items-center justify-between border-b border-gray-400/25">
                 <div className="flex items-center cursor-pointer">
                   <div className="chat-image avatar mr-3">
                     <div className="w-10 rounded-full">
@@ -216,7 +315,7 @@ const Home = () => {
                       />
                     </div>
                   </div>
-                  <h5 className="text-gray-300 text-lg ">{user.handle}</h5>
+                  <h5 className="text-gray-300 text-lg">{user.handle}</h5>
                 </div>
                 <button
                   className="px-1 py-1 rounded-full hover:bg-accent transition-all duration-300"
@@ -225,59 +324,48 @@ const Home = () => {
                   <IoClose className="text-gray-300 text-2xl" />
                 </button>
               </div>
-              {/* /// text   messages  */}
-              <div className=" w-[100%] h-[0.1px] bg-gray-400/25 relative" />
-              <div className="flex-1 overflow-y-auto pt-4 px-2">
-                <div className="max-h-[1000px]   ">
-                  <div className="flex  flex-col">
-                    {messages.messages.map((message,index)=> {
-                      return(
 
-                       <div key={index} className={ `flex ${message.senderId === currentUser.userId ? "justify-end mt-4" : ""} `}>
+              {/* /// text messages - scrollable middle */}
+              <div className="flex-1 overflow-y-auto px-2 py-4">
+                <div className="flex flex-col gap-2">
+                  {messages.map((message) => (
+                    <div key={message.messageId} className={`flex ${message.senderId === currentUser.userId ? "justify-end" : ""}`}>
                       {message.senderId !== currentUser.userId && (
-                        <div className="w-10 mr-1 ">
-                        <img
-                          className="rounded-full"
-                          alt="Tailwind CSS chat bubble component"
-                          src={user.profileImage}
-                        />
-                      </div>
+                        <div className="w-10 mr-1 flex-shrink-0">
+                          <img
+                            className="rounded-full"
+                            alt="Tailwind CSS chat bubble component"
+                            src={user.profileImage}
+                          />
+                        </div>
                       )}
-                         <div className={` ${message.senderId === currentUser.userId ? "bg-[#1d2c35]" : "bg-[#0c1317]"} px-2 py-1.5 rounded-xl max-w-[70%] leading-none`}>
-                        <div>
-                          <p className="w-fit font-sans leading-none  text-white">
-                            {message.text}
-                          </p>
-                           {
-                            message.senderId === currentUser.userId ? (
-                               <div className="flex justify-end mt-1 gap-1 items-center  ">
-                          <small className="text-white ">{dayjs(message.createdAt).fromNow(true)}</small>
-                          <IoCheckmarkDoneOutline className={`text-lg ${chat.isSeen? "text-green-500" : "text-white"}`} />
-                        </div>
-                            ) : (
-                              <small className="text-white float-left mt-1">
-                                {dayjs(message.createdAt).fromNow(true)}
-                              </small>
-                            )
-                           }
-                         
-                        </div>
+                      <div className={`${message.senderId === currentUser.userId ? "bg-[#1d2c35]" : "bg-[#0c1317]"} px-2 py-1.5 rounded-xl max-w-[70%]`}>
+                        <p className="font-sans text-white break-words">
+                          {message.text}
+                        </p>
+                        {message.senderId === currentUser.userId ? (
+                          <div className="flex justify-end mt-1 gap-1 items-center">
+                            <small className="text-gray-400 text-xs">{dayjs(message.createdAt).fromNow(true)}</small>
+                            <IoCheckmarkDoneOutline className={`text-lg ${message.isSeen ? "text-green-500" : "text-gray-400"}`} />
+                          </div>
+                        ) : (
+                          <small className="text-gray-400 text-xs block mt-1">
+                            {dayjs(message.createdAt).fromNow(true)}
+                          </small>
+                        )}
                       </div>
                     </div>
-                      )
-                    })}
-                  </div>
+                  ))}
                 </div>
               </div>
-              {/* ///  message footer  */}
 
-              <div className="flex  h-20 flex-col   w-[24rem]  z-[100] shadow-inner  absolute  bottom-0    ">
-                <div className=" w-[100%] h-[0.2px] bg-gray-300/20 " />
-                <form onSubmit={handleSendMessage} className="flex items-center justify-between mx-3 my-auto  rounded-xl bg-gray-300/5  ">
+              {/* ///  message footer - fixed at bottom */}
+              <div className="flex-shrink-0 border-t border-gray-300/20 p-3">
+                <form onSubmit={handleSendMessage} className="flex items-center rounded-xl bg-gray-300/5">
                   <input
+                    value={text}
                     onChange={(e) => setText(e.target.value)}
-                    className=" px-2 py-1   rounded-md border-none bg-transparent focus:outline-none focus:border-accent
-                   text-gray-100"
+                    className="flex-1 px-3 py-2 rounded-md border-none bg-transparent focus:outline-none text-gray-100"
                     name="message"
                     type="text"
                     autoComplete="off"
@@ -285,7 +373,7 @@ const Home = () => {
                   />
                   <button
                     type="submit"
-                    className="w-12 h-10 ml-2 rounded-md  border-none "
+                    className="w-12 h-10 rounded-md border-none flex items-center justify-center"
                   >
                     <AiOutlineSend className="text-white text-2xl" />
                   </button>

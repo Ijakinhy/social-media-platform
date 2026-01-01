@@ -19,13 +19,13 @@ const {
   uploadProfilePic,
   markNotificationRead,
   blockUser,
-  getUserMessages,
   getAuthenticatedUsed,
 } = require("./handlers/users");
 const authMiddleware = require("./utils/authMiddleware");
 const {
   createChat,
   sendMessage,
+  getMessages,
   markMessageSeen,
   markMessageNotificationRead,
 } = require("./handlers/chats");
@@ -54,37 +54,47 @@ app.get("/user", authMiddleware, getAuthenticatedUsed);
 app.post("/user/image", authMiddleware, uploadProfilePic);
 
 app.get("/markNotificationRead", authMiddleware, markNotificationRead);
-app.get("/selectChat", authMiddleware, createChat);
-app.post("/sendMessage/:recipient", authMiddleware, sendMessage);
-app.get("/markMessageSeen", authMiddleware, markMessageSeen);
-app.get(
-    "/markMessageNotificationRead",
-    authMiddleware,
-    markMessageNotificationRead,
-); // //  read chats notifications
+
+// Chat routes
+app.post("/chat", authMiddleware, createChat);
+app.post("/chat/:chatId/message", authMiddleware, sendMessage);
+app.get("/chat/:chatId/messages", authMiddleware, getMessages);
+app.post("/chat/:chatId/markSeen", authMiddleware, markMessageSeen);
+app.get("/markMessageNotificationRead", authMiddleware, markMessageNotificationRead);
+
 app.get("/blockUser/:userId", authMiddleware, blockUser);
-app.get("/getUserMessages/:sender", authMiddleware, getUserMessages);
 
 exports.api = functions.https.onRequest(app);
 
 // event trigger
 
 exports.createSmsNotifications = onDocumentCreated(
-    "/chats/{userHandle}/messages/{messageId}",
+    "/chats/{chatId}/messages/{messageId}",
     async (event) => {
       try {
-        const recipient = await event.data._fieldsProto.recipient.stringValue;
+        const messageData = event.data.data();
+        const recipientId = messageData.recipientId;
+        const senderId = messageData.senderId;
 
-        if (recipient !== event.params.userHandle) {
-          await db.collection("notifications").add({
-            recipient,
-            sender: event.params.userHandle,
-            type: "message",
-            createdAt: new Date().toISOString(),
-            read: false,
-            messageId: event.params.messageId,
-          });
-        }
+        // Don't create notification if sender is recipient
+        if (recipientId === senderId) return;
+
+        // Get sender info for notification
+        const senderDoc = await db.doc(`/users/${senderId}`).get();
+        const senderData = senderDoc.data();
+
+        await db.collection("notifications").add({
+          recipient: recipientId,
+          sender: senderId,
+          senderHandle: senderData && senderData.handle,
+          senderAvatar: senderData && senderData.profileImage,
+          type: "message",
+          createdAt: new Date().toISOString(),
+          read: false,
+          chatId: event.params.chatId,
+          messageId: event.params.messageId,
+          messagePreview: messageData.text ? messageData.text.substring(0, 50) : "",
+        });
       } catch (error) {
         console.error(error);
       }

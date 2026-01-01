@@ -11,24 +11,31 @@ import updateLocale from "dayjs/plugin/updateLocale";
 const Chats = () => {
   const dispatch = useDispatch();
   const [chats, setChats] = useState([]);
-  const [searchInput, setSearchInput] = useState("");
 
   const { credentials: currentUser } = useSelector((state) => state.user);
   useEffect(() => {
-    if(!currentUser.userId) return
+    if (!currentUser.userId) return;
+
     const unSub = onSnapshot(
       doc(db, "userChats", currentUser.userId),
       async (res) => {
         const items = res.data()?.chats || [];
-        if(!items.length) return
+
+        if (!items.length) {
+          setChats([]);
+          return;
+        }
 
         const promises = items.map(async (item) => {
-          const userDocRef = doc(db, "users", item.receiverId);
+          // Support both old (receiverId) and new (recipientId) field names
+          const recipientId = item.recipientId || item.receiverId;
+          const userDocRef = doc(db, "users", recipientId);
           const userDocSnap = await getDoc(userDocRef);
           const user = userDocSnap.data();
 
           return {
             ...item,
+            recipientId, // Normalize to recipientId
             user,
           };
         });
@@ -43,31 +50,34 @@ const Chats = () => {
     return () => {
       unSub();
     };
-  }, [currentUser.userId]);
+  }, [currentUser.userId, dispatch]);
 
   
   const handleSelectChat = async (chat) => {
-     dispatch(setIsMessageModelOpen(true));
+    dispatch(setIsMessageModelOpen(true));
     dispatch(setIsChatsOpen(false));
+
+    // Get recipientId (support both old and new field names)
+    const recipientId = chat.recipientId || chat.receiverId;
+
     const userChats = chats.map((item) => {
-      const { user, ...rest } = item  
+      const { user, ...rest } = item;
       return rest;
     });
-    
-    
+
     const chatIndex = userChats.findIndex(
       (item) => item.chatId === chat.chatId
     );
     userChats[chatIndex].isSeen = true;
+
     try {
-        await updateDoc(doc(db, "userChats", currentUser.userId), {
-          chats: userChats,
-        });
-      const user =  (await getDoc(doc(db, "users", chat.receiverId))).data();
+      await updateDoc(doc(db, "userChats", currentUser.userId), {
+        chats: userChats,
+      });
+      const user = (await getDoc(doc(db, "users", recipientId))).data();
       dispatch(
-        changeChat({ chatId: chat.chatId, user: user, currentUser,chat })
+        changeChat({ chatId: chat.chatId, user: user, currentUser, chat })
       );
-      
     } catch (error) {
       console.log(error);
     }
@@ -128,38 +138,42 @@ const Chats = () => {
         </div>
         {/* Chats */}
          {chats.map((chat) => {
-          
-           return (<div
-           key={chat.chatId}
-          className={`  flex mt-2   mr-3 relative group/parent bg-[#0c1317] transition-all ease-out p-1.5 rounded-lg justify-between items-center    `}
-          onClick={()=> handleSelectChat(chat)}
-        >
-          <div className="flex items-center  ">
-            {chat.senderId !== currentUser.userId && (
-              <div className="w-16 rounded-full">
-              <img
-                src={chat.avatar}
-                alt="recipient profile"
-                className="w-full rounded-full"
-              />
+          // Support both old (avatar) and new (recipientAvatar) field names
+          const avatarUrl = chat.recipientAvatar || chat.avatar || chat.user?.profileImage;
+
+          return (
+            <div
+              key={chat.chatId}
+              className="flex mt-2 mr-3 relative group/parent bg-[#0c1317] transition-all ease-out p-1.5 rounded-lg justify-between items-center cursor-pointer"
+              onClick={() => handleSelectChat(chat)}
+            >
+              <div className="flex items-center">
+                <div className="w-16 rounded-full">
+                  <img
+                    src={avatarUrl}
+                    alt="recipient profile"
+                    className="w-full rounded-full"
+                  />
+                </div>
+                <div className="flex flex-col ml-3">
+                  <h5 className="text-gray-100 font-normal capitalize">
+                    {chat.recipientHandle || chat.user?.handle}
+                  </h5>
+                  <p className="text-gray-300 text-sm">
+                    {chat.lastMessage && (
+                      <>
+                        <span>{chat.lastMessage}</span> . {dayjs(chat.updatedAt).fromNow(true)}
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+              {!chat.isSeen && (
+                <span className="w-3 h-3 bg-green-500 rounded-full absolute top-2 right-2" />
+              )}
             </div>
-            )}
-            <div className="flex  flex-col ml-3">
-              <h5 className="text-gray-100 font-normal  capitalize m">
-                {chat.user.handle}
-              </h5>
-              <p className="text-gray-300 text-sm -serif">
-                You: <span>{chat.lastMessage}</span> . {dayjs(chat.updatedAt).fromNow(true)}
-              </p>
-            </div>
-          </div>
-          {/* <span className="text-slate-900  absolute top-1 right-2  px-1 py-0.5 font-bold rounded-full font-afacad  bg-[#00A884]">
-            20
-          </span>
-          <FaChevronDown className="text-gray-200 text-sm absolute bottom-1 cursor-pointer right-2  rounded-full opacity-0 group-hover/parent:opacity-100  transition-all pointer-events-none group-hover/parent:pointer-events-auto " /> */}
-        </div>
-           )
-})}
+          );
+        })}
         
       </div>
     </>
