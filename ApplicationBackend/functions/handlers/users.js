@@ -1,6 +1,6 @@
 const axios = require("axios");
 const { db, admin } = require("../utils/admin");
-const { firebaseConfig } = require("../utils/config");
+const { firebaseConfig, getStorageUrl } = require("../utils/config");
 const busboy = require("busboy");
 const os = require("os");
 const fs = require("fs");
@@ -13,8 +13,7 @@ exports.signUpUser = async (req, res) => {
       handle: req.body.handle,
       lastName: req.body.lastName,
       email: req.body.email,
-      profileImage:
-        "http://127.0.0.1:9199/v0/b/social-platform-ijakinhy.firebasestorage.app/o/default.jpg?alt=media",
+      profileImage: getStorageUrl("default.jpg"),
       password: req.body.password,
       telephoneNumber: req.body.telephoneNumber,
     };
@@ -314,7 +313,7 @@ exports.uploadProfilePic = async (req, res) => {
           },
         });
 
-      const imageUrl = `http://127.0.0.1:9199/v0/b/${firebaseConfig.storageBucket}/o/${imageFilename}?alt=media`;
+      const imageUrl = getStorageUrl(imageFilename);
 
       if (req.user.profileImage !== imageUrl) {
         await db.runTransaction(async (transaction) => {

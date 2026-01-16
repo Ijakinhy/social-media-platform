@@ -3,7 +3,7 @@ const busboy = require("busboy");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
-const { firebaseConfig } = require("../utils/config");
+const { firebaseConfig, getStorageUrl } = require("../utils/config");
 
 //  fetch  all  screams
 exports.getAllScreams = async (req, res) => {
@@ -67,7 +67,7 @@ exports.postOneScream = async (req, res) => {
     file.pipe(fs.createWriteStream(filepath));
     hasImage = true;
   });
- console.log({storege:process.env.FIREBASE_STORAGE_BUCKET}) 
+
   bb.on("finish", async () => {
     try {
       if (hasImage) {
@@ -83,7 +83,7 @@ exports.postOneScream = async (req, res) => {
             },
           });
 
-        imageUrl = `http://127.0.0.1:9199/v0/b/${firebaseConfig.storageBucket}/o/${imageFilename}?alt=media`;
+        imageUrl = getStorageUrl(imageFilename);
         newScream.screamImage = imageUrl;
       }
       if (!hasDescription && !hasImage) {

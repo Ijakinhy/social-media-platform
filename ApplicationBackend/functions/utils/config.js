@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -10,4 +11,15 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
-module.exports = { firebaseConfig };
+const getStorageUrl = (filename) => {
+  const bucket = firebaseConfig.storageBucket;
+  const encodedFilename = encodeURIComponent(filename);
+
+  if (process.env.FIREBASE_STORAGE_EMULATOR_HOST) {
+    return `http://${process.env.FIREBASE_STORAGE_EMULATOR_HOST}/v0/b/${bucket}/o/${encodedFilename}?alt=media`;
+  }
+
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedFilename}?alt=media`;
+};
+
+module.exports = { firebaseConfig, getStorageUrl };

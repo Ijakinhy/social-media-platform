@@ -4,7 +4,7 @@ const busboy = require("busboy");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
-const { config } = require("./config");
+const { getStorageUrl } = require("./config");
 
 const uploadImage = (req) => {
   return new Promise((resolve, reject) => {
@@ -39,7 +39,7 @@ const uploadImage = (req) => {
               },
             },
           });
-        const imageUrl = `http://127.0.0.1:9199/v0/b/${config.storageBucket}/o/${imageFilename}?alt=media`;
+        const imageUrl = getStorageUrl(imageFilename);
         resolve(imageUrl);
       } catch (error) {
         console.log("error while uploading image", error);
